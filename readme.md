@@ -111,3 +111,19 @@ config
 ======
 
 manage your config 
+
+### usage ###
+
+first create config file, store some config information
+
+```
+use cmhc\amber\modules\Config;
+Config::set("foo","bar");
+```
+
+then include this config file to your project, use Config::get to get config information
+
+```
+use cmhc\amber\modules\Config;
+Config::get("foo");
+```
