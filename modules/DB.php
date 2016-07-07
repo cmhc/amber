@@ -8,23 +8,18 @@ namespace cmhc\amber\modules;
 class DB
 {
 
-    private $_pdo = null; //pdo操作实例
+    private $_pdo = null;
 
-    //执行操作句柄
     private $_sth = null;
 
     /**
-     * 数据库配置
+     * db config
      * array
      */
     private $config;
 
     private static $handle = array();
 
-    /**
-     * 初始化连接配置,支持从文件中读取config同时也支持传入config内容
-     * @param  array $config  配置数组
-     */
     private function __construct()
     {}
 
@@ -34,19 +29,18 @@ class DB
         if (!isset(self::$handle[$hash])) {
             self::$handle[$hash] = new self;
             self::$handle[$hash]->setConfig($config);
-
         }
         return self::$handle[$hash];
     }
 
-    public function setConfig($config)
+    private function setConfig($config)
     {
         $this->config = $config;
     }
 
     /**
-     * 初始化数据库连接
-     * @return object pdo对象
+     * create pdo handle
+     * @return object
      */
     private function _initpdo()
     {
@@ -65,7 +59,7 @@ class DB
     }
 
     /**
-     * 获取一行数据,sql语句最好加上 limit 1
+     * query sql
      */
     public function query($sql, $prepare = '', $style = \PDO::FETCH_ASSOC, $fetch_type = 'fetchAll')
     {
@@ -88,7 +82,6 @@ class DB
             return false;
         }
 
-        //查询失败直接返回false
         if ($style != '') {
             $result = $sth->$fetch_type($style);
         } else {
@@ -104,39 +97,30 @@ class DB
     }
 
     /**
-     * 获取单个数据
+     * get single data
      */
     public function getVar($sql, $prepare = '')
     {
-        //debug信息
-        if (class_exists("Debug")) {
-            Debug::msg(array('获取单个值SQL' . __FILE__ . __LINE__ . '行', $sql), 1);
-        }
-
         $result = $this->query($sql, $prepare, \PDO::FETCH_NUM, 'fetch');
         return $result[0];
-
     }
 
     /**
-     * 获取一行数据
-     * @param $sql string sql语句
-     * @param $prepare array 可选，参数存在则绑定前面的sql语句里面的占位符
+     * get a row data
+     * @param $sql string sql statement
+     * @param $prepare array
      */
     public function getRow($sql, $prepare = '')
     {
-        //debug信息
-        Debug::msg(array('获取ROW SQL' . __FILE__ . __LINE__ . '行', $sql), 1);
-
         $result = $this->query($sql, $prepare, \PDO::FETCH_ASSOC, 'fetch');
         return $result;
     }
 
     /**
-     * 获取所有数据
-     * @param $sql string sql语句
-     * @param $prepare array 可选，参数存在则绑定前面的sql语句里面的占位符
-     * @param $style fetch样式，废弃
+     * get all data which found
+     * @param $sql string sql statement
+     * @param $prepare array
+     * @param $style fetch
      */
     public function getAll($sql, $prepare = '', $style = '')
     {
@@ -145,21 +129,19 @@ class DB
     }
 
     /**
-     * 执行，返回影响的函数，sql需要注意严格过滤，该函数不对sql过滤
-     * 因此不要有用户输入的数据在此sql里面
+     * execute sql statement
      * @param $sql
-     * @return int 返回所影响的函数
+     * @return int
      */
     public function exec($sql)
     {
         return $this->_pdo->exec($sql);
-
     }
 
     /**
-     * 插入操作
-     * @param  string $table 表名称
-     * @param  array  $data  数据
+     * insert action
+     * @param  string $table table name
+     * @param  array  $data  data
      * @return boolean
      */
     public function insert($table, array $data)
@@ -191,14 +173,18 @@ class DB
     }
 
     /**
-     * 更新操作
+     * update data
+     * @param  string $table
+     * @param  array $data
+     * @param  string $where
+     * @return boolean
      */
     public function update($table, $data, $where)
     {
         /* 对whwere进行测试,不允许没有条件的更新 */
         $whereArray = explode("=", $where);
         if (count($whereArray) < 2 || $whereArray[1] == '') {
-            throw new Exception("不允许没有条件的更新", 1);
+            throw new \Exception("the query is not allowd", 1);
         }
 
         if (!isset($this->_pdo)) {
@@ -225,7 +211,37 @@ class DB
     }
 
     /**
-     * 返回错误信息
+     * create table
+     * id is always primary key
+     */
+    public function createTable($table, $data, $key = null)
+    {
+        $sql = "CREATE TABLE `{$table}`(";
+        foreach($data as $column=>$type){
+            if( $column == 'id' ){
+                $sql .= "`$column` $type NOT NULL PRIMARY KEY AUTO_INCREMENT,";
+            }else{
+                $sql .= "$column $type,";
+            }
+        }
+        if( $key ){
+            foreach( $key as $field=>$type ){
+                $sql .= "{$type} (`{$field}`),";
+            }
+        }
+
+        $sql = rtrim($sql,',');
+        $sql .= ") ENGINE=MyISAM DEFAULT CHARSET=utf8";
+        return $this->query($sql);
+    }
+
+    public function dropTable($table)
+    {
+        
+    }
+
+    /**
+     * get last error info
      */
     public function errorInfo()
     {
@@ -233,7 +249,7 @@ class DB
     }
 
     /**
-     * 上一个自增id
+     * get last insert id
      */
     public function lastInsertId()
     {
@@ -241,7 +257,7 @@ class DB
     }
 
     /**
-     * 打印debug信息
+     * get debug params
      */
     public function debugDumpParams()
     {

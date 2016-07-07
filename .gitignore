@@ -1,5 +1,6 @@
 vendor/*
 view/*
+testcase/db.test.php
 index.php
 composer.lock
 config.php
