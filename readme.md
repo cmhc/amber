@@ -1,0 +1,113 @@
+Route
+======
+
+Route is a simple PHP Router, just less than 100 lines of code. 
+
+### usage ###
+
+use namespace
+
+```
+use cmhc\amber\modules\Route;
+```
+
+Normal match
+
+```
+use cmhc\amber\modules\Route;
+
+Route::get("/",function(){
+	echo 'hello';
+});
+```
+open your browser, type `http://localhost/Hcrail/` in the address bar, and you will see "hello" in the browser.
+
+
+Regular match
+
+```
+Route::get("/([0-9]*)\.html",function($args){
+	echo $args[1];
+});
+```
+
+Route can support regular match, regular expressions need be surrounded by parentheses,then the callback function parameters is the matching result.
+
+type `http://localhost/Hcrail/6666.html` in the browser address bar and you will seee "6666" in browser window.
+
+### config ###
+
+apache
+
+We need to create a file called .htaccess and go into the following sections
+
+```
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME}% !-f
+RewriteCond %{REQUEST_FILENAME}% !-d
+
+RewriteRule ^.*$ index.php [L]
+```
+
+nginx
+
+We need modify the file named nginx.conf, as follows
+
+```
+location / {
+	try_files $uri $uri/ /index.php?/$uri;
+}
+```
+
+
+Route
+======
+
+Route 是一个简单的PHP路由，代码不到100行
+
+Route 支持普通匹配和正则匹配，如下
+
+普通匹配，匹配首页
+```
+use cmhc\amber\modules\Route;
+
+Route::get("/",function(){
+	echo 'hello';
+});
+```
+
+正则匹配，匹配类似 http://localhost/6666.html 的地址
+```
+Route::get("/([0-9]*)\.html",function($args){
+	echo $args[1];
+});
+```
+
+### 服务器配置 ###
+
+apache
+在根目录建立 .htaccess 文件 
+```
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME}% !-f
+RewriteCond %{REQUEST_FILENAME}% !-d
+
+RewriteRule ^.*$ index.php [L]
+```
+
+nginx
+
+```
+location / {
+	try_files $uri $uri/ /index.php?/$uri;
+}
+```
+
+config
+======
+
+manage your config 

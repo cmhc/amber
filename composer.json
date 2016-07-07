@@ -1,0 +1,13 @@
+{
+	"name": "cmhc/amber",
+	"description": "amber",
+	"require": {
+		"php": ">=5.3.3"
+	},
+	"autoload": {
+		"files":["modules/Config.php"],
+		"psr-4": {
+			"cmhc\\amber\\": ""
+		}
+	}
+}
