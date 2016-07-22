@@ -4,4 +4,5 @@ testcase/db.test.php
 index.php
 composer.lock
 config.php
+!modules/Config.php
 .htaccess
