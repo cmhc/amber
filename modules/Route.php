@@ -19,6 +19,12 @@ class Route
     protected static $routeFound = false;
 
     /**
+     * args
+     * @var mixed
+     */
+    protected static $args = null;
+
+    /**
      * deal with get,post,head,put,delete,options,head
      * @param   $method
      * @param   $arguments
@@ -26,7 +32,7 @@ class Route
      */
     public static function __callstatic($method, $arguments)
     {
-        self::$match = str_replace("//", "/", dirname($_SERVER['PHP_SELF']) . $arguments[0]);
+        self::$match = stripslashes(str_replace("//", "/", dirname($_SERVER['PHP_SELF']) . $arguments[0]));
         self::$callback = $arguments[1];
         self::dispatch();
         return;
@@ -58,6 +64,7 @@ class Route
         preg_match("#$regexp#", $requestUri, $matches);
         if (!empty($matches)) {
             self::$routeFound = true;
+            self::$args = $matches;
             call_user_func(self::$callback, $matches);
         }
         return;
@@ -90,6 +97,11 @@ class Route
     public static function isNotFound()
     {
         return !self::$routeFound;
+    }
+
+    public static function getArgs()
+    {
+        return self::$args;
     }
 
 }
