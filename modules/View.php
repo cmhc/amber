@@ -5,6 +5,8 @@ class View
 {
     protected $viewPath;
 
+    protected $class;
+
     public function __construct($viewPath)
     {
         $this->viewPath = $viewPath;
@@ -18,6 +20,16 @@ class View
         return;
     }
 
+    public function __call($method, $args)
+    {
+        if(isset($this->class[$method])){
+            $class = $this->class[$method];
+            return $class::$method($args);
+        }else{
+            return false;
+        }
+    }
+
     /**
      * assign value to property
      * @param  string $var
@@ -27,6 +39,15 @@ class View
     public function assign($var, $value)
     {
         $this->$var = $value;
+    }
+
+    /**
+     * add method array
+     * use this method to define a relation which is method from class when the class called a not exits method
+     */
+    public function addMethod($method,$class)
+    {
+        $this->class[$method] = $class;
     }
 
     /**
