@@ -5,7 +5,7 @@ class Util
 {
     public static function getSiteUrl()
     {
-        return (($_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . stripslashes(dirname($_SERVER['PHP_SELF']));
+        return (($_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . rtrim( stripslashes(dirname($_SERVER['PHP_SELF'])), '/');
     }
 
     /**
