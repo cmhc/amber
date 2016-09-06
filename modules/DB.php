@@ -173,6 +173,22 @@ class DB
     }
 
     /**
+     * multi insert
+     * @param  array $data
+     * $data = array('field'=>array("field1","field2"),"data"=>array("d1,d2","d1,d2"))
+     */
+    public function minsert($table, $data)
+    {
+        if (!isset($this->_pdo)) {
+            $this->_initpdo();
+        }        
+        $fields = implode(",",$data['field']);
+        $values = '(' . implode('),(',$data['data']) . ')';
+        $sql = "INSERT INTO {$table}($fields) VALUES{$values}";
+        return $this->_pdo->exec($sql);
+    }
+
+    /**
      * update data
      * @param  string $table
      * @param  array $data
