@@ -2,7 +2,7 @@
 /**
  * simple config
  */
-namespace cmhc\amber\modules;
+namespace amber\modules;
 
 class Config
 {

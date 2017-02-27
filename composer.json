@@ -6,7 +6,7 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"cmhc\\amber\\": ""
+			"amber\\": "cmhc/amber/"
 		}
 	}
 }

@@ -1,5 +1,5 @@
 <?php
-namespace cmhc\amber\modules;
+namespace amber\modules;
 
 /**
  * 简单数据库操作类，基于pdo

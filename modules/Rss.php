@@ -1,5 +1,5 @@
 <?php
-namespace cmhc\amber\modules;
+namespace amber\modules;
 
 class Rss
 {
