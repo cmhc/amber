@@ -1,60 +1,45 @@
 <?php
 namespace amber\modules;
-
+use amber\modules\Instance;
 /**
  * 简单数据库操作类，基于pdo
  * update 14:35 2015/3/13  查询出错直接返回false，不再有fetch操作
  */
-class DB
+class DB extends Instance
 {
 
-    private $_pdo = null;
+    protected $pdo = null;
 
-    private $_sth = null;
+    protected $sth = null;
 
     /**
      * db config
      * array
      */
-    private $config;
+    protected $config = array();
 
-    private static $handle = array();
-
-    private function __construct()
-    {}
-
-    public static function getInstance($config)
+    public function __construct($config)
     {
-        $hash = md5(json_encode($config));
-        if (!isset(self::$handle[$hash])) {
-            self::$handle[$hash] = new self;
-            self::$handle[$hash]->setConfig($config);
-        }
-        return self::$handle[$hash];
-    }
-
-    private function setConfig($config)
-    {
-        $this->config = $config;
+        $this->config = $config;   
     }
 
     /**
      * create pdo handle
      * @return object
      */
-    private function _initpdo()
+    private function initpdo()
     {
-        if (isset($this->_pdo)) {
+        if (isset($this->pdo)) {
             return;
         }
         $dsn = $this->config['driver'] . ":dbname=" . $this->config['dbname'] . ";host=" . $this->config['host'];
         try {
-            $this->_pdo = new \PDO($dsn, $this->config['username'], $this->config['password'], $this->config['options']);
+            $this->pdo = new \PDO($dsn, $this->config['username'], $this->config['password'], $this->config['options']);
         } catch (PDOException $e) {
             echo $e->getMessage();
         }
         $charset = isset($this->config['charset']) ? $this->config['charset'] : 'utf8';
-        $this->_pdo->query("SET NAMES '{$charset}'");
+        $this->pdo->query("SET NAMES '{$charset}'");
 
     }
 
@@ -64,8 +49,8 @@ class DB
     public function query($sql, $prepare = '', $style = \PDO::FETCH_ASSOC, $fetch_type = 'fetchAll')
     {
 
-        if (!isset($this->_pdo)) {
-            $this->_initpdo();
+        if (!isset($this->pdo)) {
+            $this->initpdo();
         }
 
         if ($prepare != '' && !is_array($prepare)) {
@@ -73,9 +58,9 @@ class DB
         }
 
         if ($prepare == '') {
-            $sth = $this->_pdo->query($sql);
+            $sth = $this->pdo->query($sql);
         } else {
-            $sth = $this->_pdo->prepare($sql);
+            $sth = $this->pdo->prepare($sql);
             $sth->execute($prepare);
         }
         if (!$sth) {
@@ -92,7 +77,7 @@ class DB
             $sth->closeCursor();
         }
 
-        $this->_sth = $sth;
+        $this->sth = $sth;
         return $result;
     }
 
@@ -135,7 +120,7 @@ class DB
      */
     public function exec($sql)
     {
-        return $this->_pdo->exec($sql);
+        return $this->pdo->exec($sql);
     }
 
     /**
@@ -146,8 +131,8 @@ class DB
      */
     public function insert($table, array $data)
     {
-        if (!isset($this->_pdo)) {
-            $this->_initpdo();
+        if (!isset($this->pdo)) {
+            $this->initpdo();
         }
         $keys = array_keys($data);
         $fields = str_replace(":", "", '`' . implode('`, `', $keys) . '`');
@@ -164,7 +149,7 @@ class DB
                 $newData[$f] = $v;
             }
         }
-        $sth = $this->_pdo->prepare("INSERT INTO {$table}({$fields}) VALUES({$placeholder})");
+        $sth = $this->pdo->prepare("INSERT INTO {$table}({$fields}) VALUES({$placeholder})");
         if ($sth) {
             return $sth->execute($newData);
         } else {
@@ -179,13 +164,13 @@ class DB
      */
     public function minsert($table, $data)
     {
-        if (!isset($this->_pdo)) {
-            $this->_initpdo();
+        if (!isset($this->pdo)) {
+            $this->initpdo();
         }        
         $fields = implode(",",$data['field']);
         $values = '(' . implode('),(',$data['data']) . ')';
         $sql = "INSERT INTO {$table}($fields) VALUES{$values}";
-        return $this->_pdo->exec($sql);
+        return $this->pdo->exec($sql);
     }
 
     /**
@@ -203,8 +188,8 @@ class DB
             throw new \Exception("the query is not allowd", 1);
         }
 
-        if (!isset($this->_pdo)) {
-            $this->_initpdo();
+        if (!isset($this->pdo)) {
+            $this->initpdo();
         }
         $set = '';
         //拼装set，组装更新数组
@@ -218,7 +203,7 @@ class DB
         }
         $set = rtrim($set, ',');
 
-        $sth = $this->_pdo->prepare("UPDATE `{$table}` SET {$set} WHERE {$where}");
+        $sth = $this->pdo->prepare("UPDATE `{$table}` SET {$set} WHERE {$where}");
         if ($sth) {
             return $sth->execute($newData);
         } else {
@@ -261,7 +246,7 @@ class DB
      */
     public function errorInfo()
     {
-        return $this->_pdo->errorInfo();
+        return $this->pdo->errorInfo();
     }
 
     /**
@@ -269,7 +254,7 @@ class DB
      */
     public function lastInsertId()
     {
-        return $this->_pdo->lastInsertId();
+        return $this->pdo->lastInsertId();
     }
 
     /**
@@ -277,7 +262,7 @@ class DB
      */
     public function debugDumpParams()
     {
-        return $this->_sth->debugDumpParams();
+        return $this->sth->debugDumpParams();
     }
 
 }

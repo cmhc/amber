@@ -67,6 +67,27 @@ class Util
         }
 
         return false;
+    }
 
+    /**
+     * get random stinh
+     * @param  integer $length 
+     * @return  string
+     */
+    public static function getRandomString($len = 8, $onlyLetters = false)
+    {
+        $str = '';
+        for( $i=0; $i<$len; $i++ ){
+            if ($onlyLetters){
+                $num = mt_rand(65,122);
+                if ($num >90 && $num < 97) {
+                    $num += 7;
+                }
+                $str .= chr($num);
+            } else {
+                $str .= chr(mt_rand(33,122));
+            }
+        }
+        return $str;
     }
 }

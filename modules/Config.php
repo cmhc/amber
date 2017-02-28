@@ -9,6 +9,8 @@ class Config
 
 	private static $config;
 
+	protected static $configFile;
+
 	/**
 	 * get config
 	 * @param  string $key
@@ -36,6 +38,26 @@ class Config
 		}else{
 			throw new \Exception("config $key is exists", 1);
 		}
+	}
+
+	/**
+	 * get config file
+	 * @param $key
+	 */
+	public static function getf($key)
+	{
+		if (isset(self::$configFile[$key]) && file_exists(self::$configFile[$key])) {
+			return require self::$configFile[$key];
+		}
+
+		$dirname = str_replace('\\', '/', __DIR__);
+		$namespace = str_replace('\\', '/', __NAMESPACE__);
+		$base = str_replace($namespace, '', $dirname);
+		self::$configFile[$key] = $base . '/' . str_replace('\\', '/', $key . '.php');
+		if (file_exists(self::$configFile[$key])) {
+			return require self::$configFile[$key];
+		}
+		return false;
 	}
 
 }
