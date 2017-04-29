@@ -67,11 +67,7 @@ class DB extends Instance
             return false;
         }
 
-        if ($style != '') {
-            $result = $sth->$fetch_type($style);
-        } else {
-            $result = $sth->$fetch_type();
-        }
+        $result = $sth->$fetch_type($style);
 
         if ($fetch_type == 'fetch') {
             $sth->closeCursor();
@@ -107,7 +103,7 @@ class DB extends Instance
      * @param $prepare array
      * @param $style fetch
      */
-    public function getAll($sql, $prepare = '', $style = '')
+    public function getAll($sql, $prepare = '', $style =  \PDO::FETCH_ASSOC)
     {
         $result = $this->query($sql, $prepare, $style, 'fetchAll');
         return $result;
