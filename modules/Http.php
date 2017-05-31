@@ -65,7 +65,7 @@ class Http extends Instance
 	*/
 	public function get($url)
 	{
-		curl_setopt($this->curl,CURLOPT_URL,$url);
+		curl_setopt($this->curl, CURLOPT_URL, $url);
 		return $this->run();
 	}
 
