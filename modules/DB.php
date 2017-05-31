@@ -222,7 +222,10 @@ class DB extends Instance
             }
         }
         if( $key ){
-            foreach( $key as $field=>$type ){
+            foreach( $key as $field => $type ){
+                if (strpos($field, ',')) {
+                    $field = str_replace(',', '`,`', $field);
+                }
                 $sql .= "{$type} (`{$field}`),";
             }
         }
