@@ -218,7 +218,7 @@ class DB extends Instance
             if( $column == 'id' ){
                 $sql .= "`$column` $type NOT NULL PRIMARY KEY AUTO_INCREMENT,";
             }else{
-                $sql .= "$column $type,";
+                $sql .= "`$column` $type,";
             }
         }
         if( $key ){
