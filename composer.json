@@ -1,12 +1,14 @@
 {
-	"name": "cmhc/amber",
-	"description": "amber",
-	"require": {
-		"php": ">=5.3.3"
-	},
-	"autoload": {
-		"psr-4": {
-			"amber\\": "cmhc/amber/"
-		}
-	}
+    "name": "cmhc/amber",
+    "description": "api framework",
+    "type": "framework",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "huchao",
+            "email": "hu_chao@139.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
 }
