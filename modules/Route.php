@@ -59,7 +59,6 @@ class Route
      */
     public static function regexpMatch($requestUri)
     {
-        //处理正则表达式
         $regexp = self::$match;
         preg_match("#$regexp#", $requestUri, $matches);
         if (!empty($matches)) {

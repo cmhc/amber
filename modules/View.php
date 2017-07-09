@@ -1,25 +1,35 @@
 <?php
+/**
+ * 视图类
+ * 载入前端页面
+ */
 namespace amber\modules;
 
 class View
 {
-    protected $viewPath;
+    protected $viewPath = null;
 
-    protected $class;
+    protected $class = array();
 
-    public function __construct($viewPath)
+    public function __construct(string $viewPath)
     {
         $this->viewPath = $viewPath;
     }
 
     /**
-     * when visit a property which is not exist, this method will called
+     * 前端页面访问一个不存在的属性返回空
      */
-    public function __get($name)
+    public function __get(string $name)
     {
-        return;
+        return ;
     }
 
+    /**
+     * 前端可以调用使用addMethod注册过的方法
+     * @param   $method 
+     * @param   $args   
+     * @return
+     */
     public function __call($method, $args)
     {
         if(isset($this->class[$method])){
@@ -31,7 +41,7 @@ class View
     }
 
     /**
-     * assign value to property
+     * 赋值
      * @param  string $var
      * @param  mixed $value
      * @return
@@ -42,24 +52,27 @@ class View
     }
 
     /**
-     * add method array
-     * use this method to define a relation which is method from class when the class called a not exits method
+     * 注册一个前端可以调用的方法
+     * 该方法必须是静态的方法
      */
-    public function addMethod($method,$class)
+    public function addMethod(string $method, string $class)
     {
         $this->class[$method] = $class;
     }
 
     /**
-     * display template
-     * @param $view template absolute path
-     * @param $loadmobile boolean default true 2015/06/25加上 默认会搜索手机模板
+     * 载入模板文件
+     * @param $view
      */
     public function display($view)
     {
         require $this->viewPath . '/' . $view;
     }
 
+    /**
+     * 获取模板目录
+     * @return
+     */
     public function getPath()
     {
         return $this->viewPath;

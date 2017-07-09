@@ -3,7 +3,7 @@
  * 实例化中心
  * 
  */
-namespace src\Hub;
+namespace amber\modules;
 class Hub
 {
     /**

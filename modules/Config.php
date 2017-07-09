@@ -1,6 +1,8 @@
 <?php
 /**
- * simple config
+ * 配置类
+ * 可以直接使用set操作设定配置信息
+ * 也可以为配置单独存放一个配置文件，使用getf才读取
  */
 namespace amber\modules;
 
@@ -16,7 +18,7 @@ class Config
 	 * @param  string $key
 	 * @return mixed
 	 */
-	public static function get($key)
+	public static function get(string $key)
 	{
 		if( isset(self::$config[$key]) ){
 			return self::$config[$key];
@@ -31,7 +33,7 @@ class Config
 	 * @param string $key
 	 * @param mixed $value
 	 */
-	public static function set($key, $value)
+	public static function set(string $key, $value)
 	{
 		if( !isset(self::$config[$key]) ){
 			self::$config[$key] = $value;
@@ -44,7 +46,7 @@ class Config
 	 * get config file
 	 * @param $key
 	 */
-	public static function getf($key)
+	public static function getf(string $key)
 	{
 		if (isset(self::$configFile[$key]) && file_exists(self::$configFile[$key])) {
 			return require self::$configFile[$key];
@@ -59,6 +61,4 @@ class Config
 		}
 		return false;
 	}
-
 }
-?>

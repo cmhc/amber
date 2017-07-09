@@ -1,11 +1,10 @@
 <?php
 namespace amber\modules;
-use amber\modules\Instance;
+
 /**
- * 简单数据库操作类，基于pdo
- * update 14:35 2015/3/13  查询出错直接返回false，不再有fetch操作
+ * 数据库操作类
  */
-class DB extends Instance
+class DB
 {
 
     protected $pdo = null;
@@ -18,7 +17,7 @@ class DB extends Instance
      */
     protected $config = array();
 
-    public function __construct($config)
+    public function __construct(array $config)
     {
         $this->config = $config;   
     }
@@ -27,7 +26,7 @@ class DB extends Instance
      * create pdo handle
      * @return object
      */
-    private function initpdo()
+    protected function initpdo()
     {
         if (isset($this->pdo)) {
             return;
@@ -46,7 +45,7 @@ class DB extends Instance
     /**
      * query sql
      */
-    public function query($sql, $prepare = '', $style = \PDO::FETCH_ASSOC, $fetch_type = 'fetchAll')
+    public function query(string $sql, $prepare = '', $style = \PDO::FETCH_ASSOC, $fetch_type = 'fetchAll')
     {
 
         if (!isset($this->pdo)) {
@@ -80,7 +79,7 @@ class DB extends Instance
     /**
      * get single data
      */
-    public function getVar($sql, $prepare = '')
+    public function getVar(string $sql, $prepare = '')
     {
         $result = $this->query($sql, $prepare, \PDO::FETCH_NUM, 'fetch');
         return $result[0];
@@ -91,7 +90,7 @@ class DB extends Instance
      * @param $sql string sql statement
      * @param $prepare array
      */
-    public function getRow($sql, $prepare = '')
+    public function getRow(string $sql, $prepare = '')
     {
         $result = $this->query($sql, $prepare, \PDO::FETCH_ASSOC, 'fetch');
         return $result;
@@ -103,7 +102,7 @@ class DB extends Instance
      * @param $prepare array
      * @param $style fetch
      */
-    public function getAll($sql, $prepare = '', $style =  \PDO::FETCH_ASSOC)
+    public function getAll(string $sql, $prepare = '', $style =  \PDO::FETCH_ASSOC)
     {
         $result = $this->query($sql, $prepare, $style, 'fetchAll');
         return $result;
@@ -114,7 +113,7 @@ class DB extends Instance
      * @param $sql
      * @return int
      */
-    public function exec($sql)
+    public function exec(string $sql)
     {
         return $this->pdo->exec($sql);
     }
@@ -125,7 +124,7 @@ class DB extends Instance
      * @param  array  $data  data
      * @return boolean
      */
-    public function insert($table, array $data)
+    public function insert(string $table, array $data)
     {
         if (!isset($this->pdo)) {
             $this->initpdo();
@@ -158,7 +157,7 @@ class DB extends Instance
      * @param  array $data
      * $data = array('field'=>array("field1","field2"),"data"=>array("d1,d2","d1,d2"))
      */
-    public function minsert($table, $data)
+    public function minsert(string $table, aray $data)
     {
         if (!isset($this->pdo)) {
             $this->initpdo();
@@ -176,7 +175,7 @@ class DB extends Instance
      * @param  string $where
      * @return boolean
      */
-    public function update($table, $data, $where)
+    public function update(string $table, array $data, string $where)
     {
         /* 对whwere进行测试,不允许没有条件的更新 */
         $whereArray = explode("=", $where);
@@ -211,7 +210,7 @@ class DB extends Instance
      * create table
      * id is always primary key
      */
-    public function createTable($table, $data, $key = null)
+    public function createTable(string $table, array $data, $key = null)
     {
         $sql = "CREATE TABLE `{$table}`(";
         foreach($data as $column=>$type){
