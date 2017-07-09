@@ -13,7 +13,9 @@
     "require": {
 
         },
-    "psr4": {
-        "amber\\": "cmhc/amber"
+    "autoload":{
+        "psr4": {
+            "amber\\": "cmhc/amber"
+        }
     }
 }
