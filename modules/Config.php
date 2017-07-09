@@ -18,7 +18,7 @@ class Config
 	 * @param  string $key
 	 * @return mixed
 	 */
-	public static function get(string $key)
+	public static function get($key)
 	{
 		if( isset(self::$config[$key]) ){
 			return self::$config[$key];
@@ -33,7 +33,7 @@ class Config
 	 * @param string $key
 	 * @param mixed $value
 	 */
-	public static function set(string $key, $value)
+	public static function set($key, $value)
 	{
 		if( !isset(self::$config[$key]) ){
 			self::$config[$key] = $value;
@@ -46,7 +46,7 @@ class Config
 	 * get config file
 	 * @param $key
 	 */
-	public static function getf(string $key)
+	public static function getf($key)
 	{
 		if (isset(self::$configFile[$key]) && file_exists(self::$configFile[$key])) {
 			return require self::$configFile[$key];

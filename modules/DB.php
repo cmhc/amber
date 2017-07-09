@@ -45,7 +45,7 @@ class DB
     /**
      * query sql
      */
-    public function query(string $sql, $prepare = '', $style = \PDO::FETCH_ASSOC, $fetch_type = 'fetchAll')
+    public function query($sql, $prepare = '', $style = \PDO::FETCH_ASSOC, $fetch_type = 'fetchAll')
     {
 
         if (!isset($this->pdo)) {
@@ -79,7 +79,7 @@ class DB
     /**
      * get single data
      */
-    public function getVar(string $sql, $prepare = '')
+    public function getVar($sql, $prepare = '')
     {
         $result = $this->query($sql, $prepare, \PDO::FETCH_NUM, 'fetch');
         return $result[0];
@@ -90,7 +90,7 @@ class DB
      * @param $sql string sql statement
      * @param $prepare array
      */
-    public function getRow(string $sql, $prepare = '')
+    public function getRow($sql, $prepare = '')
     {
         $result = $this->query($sql, $prepare, \PDO::FETCH_ASSOC, 'fetch');
         return $result;
@@ -102,7 +102,7 @@ class DB
      * @param $prepare array
      * @param $style fetch
      */
-    public function getAll(string $sql, $prepare = '', $style =  \PDO::FETCH_ASSOC)
+    public function getAll($sql, $prepare = '', $style =  \PDO::FETCH_ASSOC)
     {
         $result = $this->query($sql, $prepare, $style, 'fetchAll');
         return $result;
@@ -113,7 +113,7 @@ class DB
      * @param $sql
      * @return int
      */
-    public function exec(string $sql)
+    public function exec($sql)
     {
         return $this->pdo->exec($sql);
     }
@@ -124,7 +124,7 @@ class DB
      * @param  array  $data  data
      * @return boolean
      */
-    public function insert(string $table, array $data)
+    public function insert($table, array $data)
     {
         if (!isset($this->pdo)) {
             $this->initpdo();
@@ -157,7 +157,7 @@ class DB
      * @param  array $data
      * $data = array('field'=>array("field1","field2"),"data"=>array("d1,d2","d1,d2"))
      */
-    public function minsert(string $table, aray $data)
+    public function minsert($table, aray $data)
     {
         if (!isset($this->pdo)) {
             $this->initpdo();
@@ -175,7 +175,7 @@ class DB
      * @param  string $where
      * @return boolean
      */
-    public function update(string $table, array $data, string $where)
+    public function update($table, $data, $where)
     {
         /* 对whwere进行测试,不允许没有条件的更新 */
         $whereArray = explode("=", $where);
@@ -210,7 +210,7 @@ class DB
      * create table
      * id is always primary key
      */
-    public function createTable(string $table, array $data, $key = null)
+    public function createTable($table, $data, $key = null)
     {
         $sql = "CREATE TABLE `{$table}`(";
         foreach($data as $column=>$type){

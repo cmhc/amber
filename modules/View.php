@@ -11,7 +11,7 @@ class View
 
     protected $class = array();
 
-    public function __construct(string $viewPath)
+    public function __construct($viewPath)
     {
         $this->viewPath = $viewPath;
     }
@@ -19,7 +19,7 @@ class View
     /**
      * 前端页面访问一个不存在的属性返回空
      */
-    public function __get(string $name)
+    public function __get($name)
     {
         return ;
     }
@@ -55,7 +55,7 @@ class View
      * 注册一个前端可以调用的方法
      * 该方法必须是静态的方法
      */
-    public function addMethod(string $method, string $class)
+    public function addMethod($method, $class)
     {
         $this->class[$method] = $class;
     }

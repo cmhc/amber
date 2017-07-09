@@ -4,6 +4,7 @@
  * 
  */
 namespace amber\modules;
+
 class Hub
 {
     /**
@@ -24,7 +25,7 @@ class Hub
      * @param   $class 
      * @return         
      */
-    public static function bind(string $name, callable $closure)
+    public static function bind($name, callable $closure)
     {
         self::$hub[$name] = $closure;
     }
@@ -34,7 +35,7 @@ class Hub
      * @param   $name
      * @return
      */
-    public static function factory(string $name)
+    public static function factory($name)
     {
         return call_user_func(self::$hub[$name]);
     }
@@ -44,7 +45,7 @@ class Hub
      * @param  绑定的名称 $name
      * @return     
      */
-    public static function singleton(string $name)
+    public static function singleton($name)
     {
         if (isset(self::$instance[$name])) {
             return self::$instance[$name];
