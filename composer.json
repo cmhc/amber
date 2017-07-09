@@ -14,7 +14,7 @@
 
         },
     "autoload":{
-        "psr4": {
+        "psr-4": {
             "amber\\": "cmhc/amber"
         }
     }
