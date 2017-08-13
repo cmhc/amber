@@ -9,7 +9,7 @@ class Util
     }
 
     /**
-     * check if the request from mobile device or not 
+     * 判断是否是手机请求
      * @return boolean
      */
     public static function isMobile()
@@ -70,8 +70,8 @@ class Util
     }
 
     /**
-     * get random stinh
-     * @param  integer $length 
+     * 获取随机字符串
+     * @param  integer $length 长度，默认为8位
      * @return  string
      */
     public static function getRandomString($len = 8, $onlyLetters = false)

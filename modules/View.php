@@ -1,7 +1,6 @@
 <?php
 /**
- * 视图类
- * 载入前端页面
+ * 展示静态页
  */
 namespace amber\modules;
 

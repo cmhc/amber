@@ -12,8 +12,7 @@ class DB
     protected $sth = null;
 
     /**
-     * db config
-     * array
+     * 初始化配置
      */
     protected $config = array();
 
@@ -23,70 +22,80 @@ class DB
     }
 
     /**
-     * create pdo handle
-     * @return object
+     * 初始化pdo
      */
     protected function initpdo()
     {
-        if (isset($this->pdo)) {
+        if (!empty($this->pdo)) {
             return;
         }
         $dsn = $this->config['driver'] . ":dbname=" . $this->config['dbname'] . ";host=" . $this->config['host'];
         try {
             $this->pdo = new \PDO($dsn, $this->config['username'], $this->config['password'], $this->config['options']);
-        } catch (PDOException $e) {
-            echo $e->getMessage();
+        } catch (\PDOException $e) {
+            return false;
         }
+        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $charset = isset($this->config['charset']) ? $this->config['charset'] : 'utf8';
         $this->pdo->query("SET NAMES '{$charset}'");
-
     }
 
     /**
-     * query sql
+     * 查询
+     * 在cli环境下，断线将会重新连接
      */
-    public function query($sql, $prepare = '', $style = \PDO::FETCH_ASSOC, $fetch_type = 'fetchAll')
+    public function query($sql, $prepare = '', $style = \PDO::FETCH_ASSOC, $fetchType = 'fetchAll')
     {
-
-        if (!isset($this->pdo)) {
-            $this->initpdo();
+        if (empty($this->pdo) && !$this->initpdo()) {
+            return false;
         }
 
         if ($prepare != '' && !is_array($prepare)) {
             return false;
         }
 
-        if ($prepare == '') {
-            $sth = $this->pdo->query($sql);
-        } else {
-            $sth = $this->pdo->prepare($sql);
-            $sth->execute($prepare);
-        }
-        if (!$sth) {
+        try {
+            if ($prepare == '') {
+                $sth = $this->pdo->query($sql);
+            } else {
+                $sth = $this->pdo->prepare($sql);
+                $sth->execute($prepare);
+            }
+        } catch (\PDOException $e) {
+            if ($e->errorInfo[2] == 'MySQL server has gone away') {
+                //重连
+                $this->pdo = null;
+                $this->initpdo();
+            }
             return false;
         }
 
-        $result = $sth->$fetch_type($style);
+        $result = $sth->$fetchType($style);
 
-        if ($fetch_type == 'fetch') {
+        //关闭游标下一次才能继续执行相同的查询
+        if ($fetchType == 'fetch') {
             $sth->closeCursor();
         }
 
         $this->sth = $sth;
+
         return $result;
     }
 
     /**
-     * get single data
+     * 获取单个值
      */
     public function getVar($sql, $prepare = '')
     {
         $result = $this->query($sql, $prepare, \PDO::FETCH_NUM, 'fetch');
-        return $result[0];
+        if (isset($result[0])) {
+            return $result[0];
+        }
+        return false;
     }
 
     /**
-     * get a row data
+     * 获取一行值
      * @param $sql string sql statement
      * @param $prepare array
      */
@@ -97,7 +106,7 @@ class DB
     }
 
     /**
-     * get all data which found
+     * 获取查询的所有结果
      * @param $sql string sql statement
      * @param $prepare array
      * @param $style fetch
@@ -126,7 +135,7 @@ class DB
      */
     public function insert($table, array $data)
     {
-        if (!isset($this->pdo)) {
+        if (empty($this->pdo)) {
             $this->initpdo();
         }
         $keys = array_keys($data);
@@ -144,12 +153,19 @@ class DB
                 $newData[$f] = $v;
             }
         }
-        $sth = $this->pdo->prepare("INSERT INTO {$table}({$fields}) VALUES({$placeholder})");
-        if ($sth) {
-            return $sth->execute($newData);
-        } else {
+
+        try {
+            $sth = $this->pdo->prepare("INSERT INTO {$table}({$fields}) VALUES({$placeholder})");
+        } catch (\PDOException $e) {
+            if ($e->errorInfo[2] == 'MySQL server has gone away') {
+                //重连
+                $this->pdo = null;
+                $this->initpdo();
+            }
             return false;
         }
+
+        return $sth->execute($newData);
     }
 
     /**
@@ -169,7 +185,7 @@ class DB
     }
 
     /**
-     * update data
+     * 更新数据
      * @param  string $table
      * @param  array $data
      * @param  string $where
@@ -183,7 +199,7 @@ class DB
             throw new \Exception("the query is not allowd", 1);
         }
 
-        if (!isset($this->pdo)) {
+        if (empty($this->pdo)) {
             $this->initpdo();
         }
         $set = '';
@@ -198,17 +214,23 @@ class DB
         }
         $set = rtrim($set, ',');
 
-        $sth = $this->pdo->prepare("UPDATE `{$table}` SET {$set} WHERE {$where}");
-        if ($sth) {
-            return $sth->execute($newData);
-        } else {
+        try {
+            $sth = $this->pdo->prepare("UPDATE `{$table}` SET {$set} WHERE {$where}");
+        } catch (\PDOException $e) {
+            if ($e->errorInfo[2] == 'MySQL server has gone away') {
+                //重连
+                $this->pdo = null;
+                $this->initpdo();
+            }
             return false;
         }
+
+        return $sth->execute($newData);
     }
 
     /**
-     * create table
-     * id is always primary key
+     * 创建表
+     * id会自动设定为主键
      */
     public function createTable($table, $data, $key = null)
     {
