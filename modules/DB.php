@@ -23,6 +23,7 @@ class DB
 
     /**
      * 初始化pdo
+     * 连接失败会抛出异常，这里不捕获
      */
     protected function initpdo()
     {
@@ -30,14 +31,11 @@ class DB
             return;
         }
         $dsn = $this->config['driver'] . ":dbname=" . $this->config['dbname'] . ";host=" . $this->config['host'];
-        try {
-            $this->pdo = new \PDO($dsn, $this->config['username'], $this->config['password'], $this->config['options']);
-        } catch (\PDOException $e) {
-            return false;
-        }
+        $this->pdo = new \PDO($dsn, $this->config['username'], $this->config['password'], $this->config['options']);
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $charset = isset($this->config['charset']) ? $this->config['charset'] : 'utf8';
         $this->pdo->query("SET NAMES '{$charset}'");
+        return true;
     }
 
     /**
@@ -78,7 +76,6 @@ class DB
         }
 
         $this->sth = $sth;
-
         return $result;
     }
 
