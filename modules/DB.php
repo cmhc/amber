@@ -38,6 +38,7 @@ class DB
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $charset = isset($this->config['charset']) ? $this->config['charset'] : 'utf8';
         $this->pdo->query("SET NAMES '{$charset}'");
+        return true;
     }
 
     /**
