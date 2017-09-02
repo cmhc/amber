@@ -51,11 +51,15 @@ class Config
         if (isset(self::$configFile[$key]) && file_exists(self::$configFile[$key])) {
             return require self::$configFile[$key];
         }
+        if (defined('BASE_DIR')) {
+            $basedir = BASE_DIR;
+        } else {
+            $dirname = str_replace('\\', '/', __DIR__);
+            $namespace = str_replace('\\', '/', __NAMESPACE__);
+            $basedir = str_replace($namespace, '', $dirname);
+        }
 
-        $dirname = str_replace('\\', '/', __DIR__);
-        $namespace = str_replace('\\', '/', __NAMESPACE__);
-        $base = str_replace($namespace, '', $dirname);
-        self::$configFile[$key] = $base . '/' . str_replace('\\', '/', $key . '.php');
+        self::$configFile[$key] = $basedir . '/' . str_replace('\\', '/', $key . '.php');
         if (file_exists(self::$configFile[$key])) {
             return require self::$configFile[$key];
         }
