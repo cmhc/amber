@@ -44,9 +44,9 @@ class Http
         );
 
         $this->default_opt = array(
-          'useragent'=>'Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0',//浏览器useragent信息
-          'header'=>true,
-          'returntransfer'=>true
+          'useragent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36',//浏览器useragent信息
+          'header' => true,
+          'returntransfer' => true
         );
 
         $this->init();
@@ -73,7 +73,7 @@ class Http
     *@param string $url url内容 
     *@param array $post 需要发送post请求的数组
     */
-    public function post($url,$post)
+    public function post($url, $post)
     {
         curl_setopt($this->curl,CURLOPT_URL,$url);
         curl_setopt($this->curl,CURLOPT_POST,1);
@@ -302,6 +302,7 @@ class Http
     protected function run()
     {
         $result = curl_exec($this->curl);
+        curl_close($this->curl);
         if ($result === false) {
           return false;
         }

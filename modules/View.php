@@ -10,6 +10,10 @@ class View
 
     protected $class = array();
 
+    protected $style = array();
+
+    protected $script = array();
+
     public function __construct($viewPath)
     {
         $this->viewPath = $viewPath;
@@ -75,6 +79,54 @@ class View
     public function getPath()
     {
         return $this->viewPath;
+    }
+
+    /**
+     * add script
+     */
+    public function addScript($uri, $group = 'global')
+    {
+        $this->script[$group][$uri] = 1;
+    }
+
+    /**
+     * add style path
+     */
+    public function addStyle($uri, $group = 'global')
+    {
+        $this->style[$group][$uri] = 1;
+    }
+
+    /**
+     * get script
+     * @param  string $group 
+     */
+    public function getScript($group = 'global')
+    {
+        if (!isset($this->script[$group])) {
+            return false;
+        }
+        $script = '';
+        foreach ($this->script[$group] as $uri => $v) {
+            $script .= "<script type=\"text/javascript\" src=\"{$uri}\"></script>";
+        }
+        return $script;
+    }
+
+    /**
+     * get style
+     * @param  string $group 
+     */
+    public function getStyle($group = 'global')
+    {
+        if (!isset($this->style[$group])) {
+            return false;
+        }
+        $style = '';
+        foreach ($this->style[$group] as $uri => $v){
+            $style .= "<link rel=\"stylesheet\" href=\"{$uri}\">\n";
+        }
+        return $style;
     }
 
 }

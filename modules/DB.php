@@ -121,6 +121,9 @@ class DB
      */
     public function exec($sql)
     {
+        if (empty($this->pdo) && !$this->initpdo()) {
+            return false;
+        }
         return $this->pdo->exec($sql);
     }
 
@@ -248,9 +251,9 @@ class DB
             }
         }
 
-        $sql = rtrim($sql,',');
+        $sql = rtrim($sql, ',');
         $sql .= ") ENGINE=MyISAM DEFAULT CHARSET=utf8";
-        return $this->query($sql);
+        return $this->exec($sql);
     }
 
     public function dropTable($table)
