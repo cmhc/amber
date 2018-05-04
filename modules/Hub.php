@@ -25,7 +25,7 @@ class Hub
      * @param   $class 
      * @return         
      */
-    public static function bind($name, callable $closure)
+    public static function bind($name, $closure)
     {
         self::$hub[$name] = $closure;
     }
