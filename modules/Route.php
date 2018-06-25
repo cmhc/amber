@@ -81,7 +81,7 @@ class Route
         $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $requestMethod = $_SERVER['REQUEST_METHOD'];
 
-        if (strpos(self::$match, '(') === false) {
+        if (strpos(self::$match, '(') === false && strpos(self::$match, '$') === false) {
             self::normalMatch($requestUri);
         } else {
             self::regexpMatch($requestUri);

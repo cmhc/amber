@@ -38,7 +38,7 @@ class Hook
 	public static function apply($name, $args = array())
 	{
 		if (!isset(self::$hooks[$name])) {
-			return false;
+			return $args;
 		}
 		$argsCount = count($args);
 		foreach(self::$hooks[$name] as $priority=>$hooks) {
@@ -85,5 +85,15 @@ class Hook
 		if (is_string($callback[0])) {
 			return $callback[0] . '::' . $callback[1];
 		}
+	}
+
+	/**
+	 * exists
+	 * @param  string $name 
+	 * @return boolean
+	 */
+	public static function exists($name)
+	{
+		return isset(self::$hooks[$name]);
 	}
 }
