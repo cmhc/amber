@@ -47,8 +47,10 @@ class Hook
 					$value = call_user_func_array($hook['function'], array());
 				} else if($hook['accept_args'] >= $argsCount) {
 					$value = call_user_func_array($hook['function'], $args);
+					$args[0] = $value;
 				} else {
 					$value = call_user_func_array($hook['function'], array_slice($args, 0, $hook['accept_args']));
+					$args[0] = $value;
 				}
 			}
 		}
