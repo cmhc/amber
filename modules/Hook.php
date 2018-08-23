@@ -82,10 +82,13 @@ class Hook
 			return $callback;
 		}
 		if (is_object($callback)) {
-			return spl_object_hash($callback);
+			return  spl_object_hash($callback);
 		}
 		if (is_string($callback[0])) {
 			return $callback[0] . '::' . $callback[1];
+		}
+		if (is_object($callback[0])) {
+			return spl_object_hash($callback[0]) . $callback[1];
 		}
 	}
 

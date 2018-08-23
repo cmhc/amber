@@ -14,6 +14,10 @@ class View
 
     protected $script = array();
 
+    protected $inlineStyle = '';
+
+    protected $inlineScript = '';
+
     public function __construct($viewPath)
     {
         $this->viewPath = $viewPath;
@@ -90,11 +94,30 @@ class View
     }
 
     /**
+     * 添加内联脚本
+     * @param  string $style 脚本内容
+     */
+    public function addInlineSCript($script)
+    {
+        $this->inlineScript .= $script;
+    }
+
+    /**
      * add style path
      */
     public function addStyle($uri, $group = 'global')
     {
         $this->style[$group][$uri] = 1;
+    }
+
+    /**
+     * 添加内联样式
+     * @param  string $style 样式内容
+     */
+    public function addInlineStyle($style)
+    {
+        $style = str_replace(array("\n", "\r", "\t"), "", $style);
+        $this->inlineStyle .= $style;
     }
 
     /**
@@ -109,6 +132,9 @@ class View
         $script = '';
         foreach ($this->script[$group] as $uri => $v) {
             $script .= "<script type=\"text/javascript\" src=\"{$uri}\"></script>";
+        }
+        if ($this->inlineScript) {
+            $style .= "<script type=\"text/javascript\">{$this->inlineScript}</script>";
         }
         return $script;
     }
@@ -125,6 +151,9 @@ class View
         $style = '';
         foreach ($this->style[$group] as $uri => $v){
             $style .= "<link rel=\"stylesheet\" href=\"{$uri}\">\n";
+        }
+        if ($this->inlineStyle) {
+            $style .= "<style type=\"text/css\">{$this->inlineStyle}</style>";
         }
         return $style;
     }

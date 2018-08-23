@@ -39,7 +39,7 @@ class DB
     }
 
     /**
-     * 查询
+     * 执行一个查询, 会捕获异常
      * 在cli环境下，断线将会重新连接
      */
     public function query($sql, $prepare = '', $style = \PDO::FETCH_ASSOC, $fetchType = 'fetchAll')
@@ -169,7 +169,7 @@ class DB
     }
 
     /**
-     * multi insert
+     * 同时插入多行数据
      * @param  array $data
      * $data = array('field'=>array("field1","field2"),"data"=>array("d1,d2","d1,d2"))
      */
@@ -242,8 +242,8 @@ class DB
                 $sql .= "`$column` $type,";
             }
         }
-        if( $key ){
-            foreach( $key as $field => $type ){
+        if ($key) {
+            foreach ($key as $field => $type) {
                 if (strpos($field, ',')) {
                     $field = str_replace(',', '`,`', $field);
                 }
@@ -256,13 +256,34 @@ class DB
         return $this->exec($sql);
     }
 
+    /**
+     * 删除表
+     * @param  string $table
+     * @return boolean
+     */
     public function dropTable($table)
     {
-        
+        return $this->exec("DROP table '{$table}'");
     }
 
     /**
-     * get last error info
+     * 判断表是否存在
+     * @param  string $table
+     * @return boolean
+     */
+    public function existsTable($table)
+    {
+        $tables = $this->getAll("SHOW TABLES");
+        foreach ($tables as $t) {
+            if ($t[0] == $table) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 获取最后一个错误信息
      */
     public function errorInfo()
     {
@@ -270,7 +291,7 @@ class DB
     }
 
     /**
-     * get last insert id
+     * 获取插入id
      */
     public function lastInsertId()
     {
