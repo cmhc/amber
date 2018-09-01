@@ -237,7 +237,7 @@ class DB
         $sql = "CREATE TABLE `{$table}`(";
         foreach($data as $column=>$type){
             if( $column == 'id' ){
-                $sql .= "`$column` $type NOT NULL PRIMARY KEY AUTO_INCREMENT,";
+                $sql .= "`$column` $type UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,";
             }else{
                 $sql .= "`$column` $type,";
             }
@@ -263,7 +263,7 @@ class DB
      */
     public function dropTable($table)
     {
-        return $this->exec("DROP table '{$table}'");
+        return $this->exec("DROP table `{$table}`");
     }
 
     /**

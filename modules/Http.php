@@ -4,18 +4,19 @@ namespace amber\modules;
  * http请求
  */
 class Http
-{
+{    
     /**
      * get 请求
      * @param  string  $url
      * @param  integer $timeout
      * @return
      */
-    public static function get($url, $timeout = 5)
+    public static function get($url, $timeout = 5, $header = '')
     {
         $context = stream_context_create(array(
             'http' => array(
                 'method' => 'GET',
+                'header' => $header,
                 'timeout' => $timeout,
             )
         ));
