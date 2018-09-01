@@ -38,7 +38,10 @@ class Hook
 	public static function apply($name, $args = array())
 	{
 		if (!isset(self::$hooks[$name])) {
-			return $args[0];
+			if (isset($args[0])) {
+				return $args[0];
+			}
+			return true;
 		}
 		$argsCount = count($args);
 		foreach(self::$hooks[$name] as $priority=>$hooks) {
