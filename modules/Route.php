@@ -32,7 +32,7 @@ class Route
      */
     public static function __callstatic($method, $arguments)
     {
-        self::$match = stripslashes(str_replace("//", "/", dirname($_SERVER['PHP_SELF']) . $arguments[0]));
+        self::$match = $arguments[0];
         self::$callback = $arguments[1];
         self::dispatch();
         return;
@@ -79,6 +79,10 @@ class Route
             return ;
         }
         $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        // 去掉子目录
+        if ('/' != $dir = dirname($_SERVER['PHP_SELF'])) {
+            $requestUri = str_replace($requestUri, $dir, '/');
+        }
         $requestMethod = $_SERVER['REQUEST_METHOD'];
 
         if (strpos(self::$match, '(') === false && strpos(self::$match, '$') === false) {
