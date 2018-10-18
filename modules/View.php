@@ -94,6 +94,16 @@ class View
     }
 
     /**
+     * 移除脚本
+     */
+    public function removeScript($uri, $group = 'global')
+    {
+        if (isset($this->script[$group][$uri])) {
+            unset($this->script[$group][$uri]);
+        }
+    }
+
+    /**
      * 添加内联脚本
      * @param  string $style 脚本内容
      */
@@ -108,6 +118,18 @@ class View
     public function addStyle($uri, $group = 'global')
     {
         $this->style[$group][$uri] = 1;
+    }
+
+    /**
+     * 移除样式
+     * @param  string $uri
+     * @param  string $group
+     */
+    public function removeStyle($uri, $group = 'global')
+    {
+        if (isset($this->style[$group][$uri])) {
+            unset($this->style[$group][$uri]);
+        } 
     }
 
     /**
