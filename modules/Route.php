@@ -5,24 +5,40 @@ class Route
 {
 
     /**
-     * callback function
+     * 回调函数
      * @var callable
      */
     protected static $callback;
 
     /**
-     * match string or match regexp
+     * 匹配的正则
      * @var string
      */
     protected static $match;
 
-    protected static $routeFound = false;
+    /**
+     * 表示当前是否有路由被发现
+     * @var boolean
+     */
+    protected static $routeFounded = false;
 
     /**
      * args
      * @var mixed
      */
     protected static $args = null;
+
+    /**
+     * 限制
+     * @var 
+     */
+    protected static $limit;
+
+    /**
+     * 当前请求的uri
+     * @var string
+     */
+    protected static $requestUri;
 
     /**
      * deal with get,post,head,put,delete,options,head
@@ -34,37 +50,44 @@ class Route
     {
         self::$match = $arguments[0];
         self::$callback = $arguments[1];
+        self::$limit = isset($arguments[2]) ? $arguments[2] : array();
         self::dispatch();
         return;
     }
 
     /**
-     * processing ordinary route matches
+     * 匹配过程
      * @param  string $requestUri
      * @return
      */
-    public static function normalMatch($requestUri)
+    public static function match()
     {
-        if (self::$match == $requestUri) {
-            self::$routeFound = true;
-            call_user_func(self::$callback);
+        $exp = array();
+        $keys = array();
+        foreach (explode('/', self::$match) as $part) {
+            if (false !== $start = strpos($part, '{')) {
+                $end = strpos($part, '}', $start);
+                $key = substr($part, $start+1, $end-$start-1);
+                $keys[] = $key;
+                if (isset(self::$limit[$key])) {
+                    $exp[] = str_replace('{'.$key.'}', '('.self::$limit[$key].')', $part);
+                } else {
+                    $exp[] = str_replace('{'.$key.'}', '(.*?)', $part);
+                }
+            } else {
+                $exp[] = $part;
+            }
         }
-        return;
-    }
-
-    /**
-     * processing regular route matches
-     * @param  string $requestUri
-     * @return
-     */
-    public static function regexpMatch($requestUri)
-    {
-        $regexp = self::$match;
-        preg_match("#$regexp#", $requestUri, $matches);
+        $regexp = implode('/', $exp);
+        preg_match("#^{$regexp}$#", self::$requestUri, $matches);
+        $args = array();
         if (!empty($matches)) {
-            self::$routeFound = true;
-            self::$args = $matches;
-            call_user_func(self::$callback, $matches);
+            self::$routeFounded = true;
+            foreach ($keys as $id=>$key) {
+                $args[$key] = $matches[$id+1];
+            }
+            self::$args = $args;
+            call_user_func_array(self::$callback, $args);
         }
         return;
     }
@@ -75,33 +98,31 @@ class Route
      */
     public static function dispatch()
     {
-        if (self::$routeFound) {
+        if (self::$routeFounded) {
             return ;
         }
-        $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        self::$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         // 去掉子目录
         if ('/' != $dir = dirname($_SERVER['PHP_SELF'])) {
-            $requestUri = str_replace($requestUri, $dir, '/');
+            self::$requestUri = str_replace($requestUri, $dir, '/');
         }
         $requestMethod = $_SERVER['REQUEST_METHOD'];
-
-        if (strpos(self::$match, '(') === false && strpos(self::$match, '$') === false) {
-            self::normalMatch($requestUri);
-        } else {
-            self::regexpMatch($requestUri);
-        }
-
+        self::match();
     }
 
     /**
-     * Determining whether the route is found
+     * 判断是否找到一条路由
      * @return boolean
      */
     public static function isNotFound()
     {
-        return !self::$routeFound;
+        return !self::$routeFounded;
     }
 
+    /**
+     * 获取匹配到的参数
+     * @return array
+     */
     public static function getArgs()
     {
         return self::$args;
