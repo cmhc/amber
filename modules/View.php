@@ -1,26 +1,26 @@
 <?php
 /**
- * 展示静态页
+ * 页面展示类
  */
 namespace amber\modules;
 
 class View
 {
-    protected $viewPath = null;
+    protected $__viewPath = null;
 
-    protected $class = array();
+    protected $__class = array();
 
-    protected $style = array();
+    protected $__style = array();
 
-    protected $script = array();
+    protected $__script = array();
 
-    protected $inlineStyle = '';
+    protected $__inlineStyle = '';
 
-    protected $inlineScript = '';
+    protected $__inlineScript = '';
 
     public function __construct($viewPath)
     {
-        $this->viewPath = $viewPath;
+        $this->__viewPath = $viewPath;
     }
 
     /**
@@ -39,8 +39,8 @@ class View
      */
     public function __call($method, $args)
     {
-        if(isset($this->class[$method])){
-            $class = $this->class[$method];
+        if(isset($this->__class[$method])){
+            $class = $this->__class[$method];
             return $class::$method($args);
         }else{
             return false;
@@ -64,7 +64,7 @@ class View
      */
     public function addMethod($method, $class)
     {
-        $this->class[$method] = $class;
+        $this->__class[$method] = $class;
     }
 
     /**
@@ -73,7 +73,7 @@ class View
      */
     public function display($view)
     {
-        require $this->viewPath . '/' . $view;
+        require $this->__viewPath . '/' . $view;
     }
 
     /**
@@ -82,7 +82,7 @@ class View
      */
     public function getPath()
     {
-        return $this->viewPath;
+        return $this->__viewPath;
     }
 
     /**
@@ -90,7 +90,7 @@ class View
      */
     public function addScript($uri, $group = 'global')
     {
-        $this->script[$group][$uri] = 1;
+        $this->__script[$group][$uri] = 1;
     }
 
     /**
@@ -98,8 +98,8 @@ class View
      */
     public function removeScript($uri, $group = 'global')
     {
-        if (isset($this->script[$group][$uri])) {
-            unset($this->script[$group][$uri]);
+        if (isset($this->__script[$group][$uri])) {
+            unset($this->__script[$group][$uri]);
         }
     }
 
@@ -109,15 +109,17 @@ class View
      */
     public function addInlineSCript($script)
     {
-        $this->inlineScript .= $script;
+        $this->__inlineScript .= $script;
     }
 
     /**
-     * add style path
+     * 添加样式
+     * @param string $uri
+     * @param string $group
      */
     public function addStyle($uri, $group = 'global')
     {
-        $this->style[$group][$uri] = 1;
+        $this->__style[$group][$uri] = 1;
     }
 
     /**
@@ -127,8 +129,8 @@ class View
      */
     public function removeStyle($uri, $group = 'global')
     {
-        if (isset($this->style[$group][$uri])) {
-            unset($this->style[$group][$uri]);
+        if (isset($this->__style[$group][$uri])) {
+            unset($this->__style[$group][$uri]);
         } 
     }
 
@@ -139,42 +141,42 @@ class View
     public function addInlineStyle($style)
     {
         $style = str_replace(array("\n", "\r", "\t"), "", $style);
-        $this->inlineStyle .= $style;
+        $this->__inlineStyle .= $style;
     }
 
     /**
-     * get script
-     * @param  string $group 
+     * 获取脚本
+     * @param string $group 
      */
     public function getScript($group = 'global')
     {
-        if (!isset($this->script[$group])) {
+        if (!isset($this->__script[$group])) {
             return false;
         }
         $script = '';
-        foreach ($this->script[$group] as $uri => $v) {
+        foreach ($this->__script[$group] as $uri => $v) {
             $script .= "<script type=\"text/javascript\" src=\"{$uri}\"></script>";
         }
-        if ($this->inlineScript) {
-            $style .= "<script type=\"text/javascript\">{$this->inlineScript}</script>";
+        if ($this->__inlineScript) {
+            $script .= "<script type=\"text/javascript\">{$this->__inlineScript}</script>";
         }
         return $script;
     }
 
     /**
-     * get style
-     * @param  string $group 
+     * 获取样式表字符串
+     * @param string $group 
      */
     public function getStyle($group = 'global')
     {
-        if (!isset($this->style[$group])) {
+        if (!isset($this->__style[$group])) {
             return false;
         }
         $style = '';
-        foreach ($this->style[$group] as $uri => $v){
+        foreach ($this->__style[$group] as $uri => $v){
             $style .= "<link rel=\"stylesheet\" href=\"{$uri}\">\n";
         }
-        if ($this->inlineStyle) {
+        if ($this->__inlineStyle) {
             $style .= "<style type=\"text/css\">{$this->inlineStyle}</style>";
         }
         return $style;
