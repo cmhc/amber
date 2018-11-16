@@ -1,7 +1,6 @@
 <?php
 /**
- * 实例化中心
- * 
+ * 实例中心
  */
 namespace amber\modules;
 

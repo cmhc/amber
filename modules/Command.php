@@ -37,9 +37,6 @@ class Command
 		$this->File->copyr(dirname(__DIR__), $this->projectDir . '/amber' );
 		//复制项目文件
 		$this->File->copyr(dirname(__DIR__) . '/examples/site', $this->projectDir);
-		//建立一个空项目
-		mkdir($this->projectDir . '/app/' . $this->projectName);
-
 	}
 
 	/**

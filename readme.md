@@ -1,4 +1,4 @@
 Amber
 =====
 
-a simple framework
+简单的php框架

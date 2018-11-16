@@ -20,24 +20,24 @@ class Config
      */
     public static function get($key)
     {
-        if( isset(self::$config[$key]) ){
+        if (isset(self::$config[$key])) {
             return self::$config[$key];
-        }else{
+        } else {
             return false;
         }
     }
 
 
     /**
-     * add config
+     * 添加配置信息
      * @param string $key
      * @param mixed $value
      */
     public static function set($key, $value)
     {
-        if( !isset(self::$config[$key]) ){
+        if (!isset(self::$config[$key])) {
             self::$config[$key] = $value;
-        }else{
+        } else {
             throw new \Exception("config $key is exists", 1);
         }
     }
