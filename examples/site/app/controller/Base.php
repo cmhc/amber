@@ -1,9 +1,11 @@
 <?php
-namespace wwwroot\controller;
+namespace app\controller;
+
 class Base
 {
 	public function __construct()
 	{
+		
 	}
 
 	/**
