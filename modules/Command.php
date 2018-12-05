@@ -49,7 +49,7 @@ class Command
 	{
 		$help = array(
 			"amber\tcreate\t[peoject name]" => '在当前的目录下，使用amber创建一个项目，这将会创建一个完整的amber项目',
-			"amber\tapi\t[project name]" => '创建一个api项目，将不会加载css和js文件'
+			"amber\tupdate\t[project name]" => '创建一个api项目，将不会加载css和js文件'
 		);
 		foreach ($help as $cmd=>$msg) {
 			echo $cmd ."\t". $msg . "\n";
@@ -65,8 +65,8 @@ class Command
 			return false;
 		}
 		$commands = array(
-			'create',
-			'startapi'
+			'create', //根据amber创建新的项目
+			'update' //更新amber, 会完全覆盖amber框架
 		);
 		if(!in_array($GLOBALS['argv'][1], $commands)) {
 			return false;
