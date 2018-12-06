@@ -108,7 +108,7 @@ class View
      * 添加内联脚本
      * @param  string $style 脚本内容
      */
-    public function addInlineSCript($script)
+    public function addInlineScript($script)
     {
         $this->__inlineScript .= $script;
     }
@@ -178,7 +178,7 @@ class View
             $style .= "<link rel=\"stylesheet\" type=\"text/css\" href=\"{$uri}\">\n";
         }
         if ($this->__inlineStyle) {
-            $style .= "<style type=\"text/css\">{$this->inlineStyle}</style>";
+            $style .= "<style type=\"text/css\">{$this->__inlineStyle}</style>";
         }
         return $style;
     }

@@ -98,8 +98,8 @@ class Command
             return false;
         }
         $commands = array(
-            'create',
-            'update'
+            'create', //根据amber创建新的项目
+            'update' //更新amber, 会完全覆盖amber框架
         );
         if(!in_array($GLOBALS['argv'][1], $commands)) {
             return false;
