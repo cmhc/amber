@@ -1,6 +1,7 @@
 <?php
 /**
  * 页面展示类
+ * 提供了一个简单的模板视图
  */
 namespace amber\modules;
 
@@ -131,7 +132,7 @@ class View
     {
         if (isset($this->__style[$group][$uri])) {
             unset($this->__style[$group][$uri]);
-        } 
+        }
     }
 
     /**
@@ -174,7 +175,7 @@ class View
         }
         $style = '';
         foreach ($this->__style[$group] as $uri => $v){
-            $style .= "<link rel=\"stylesheet\" href=\"{$uri}\">\n";
+            $style .= "<link rel=\"stylesheet\" type=\"text/css\" href=\"{$uri}\">\n";
         }
         if ($this->__inlineStyle) {
             $style .= "<style type=\"text/css\">{$this->inlineStyle}</style>";

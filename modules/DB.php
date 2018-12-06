@@ -30,7 +30,11 @@ class DB
         if (!empty($this->pdo)) {
             return;
         }
-        $dsn = $this->config['driver'] . ":dbname=" . $this->config['dbname'] . ";host=" . $this->config['host'];
+        if (!empty($this->config['dsn'])) {
+            $dsn = $this->config['dsn'];
+        } else {
+            $dsn = $this->config['driver'] . ":dbname=" . $this->config['dbname'] . ";host=" . $this->config['host'];
+        }
         $this->pdo = new \PDO($dsn, $this->config['username'], $this->config['password'], $this->config['options']);
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $charset = isset($this->config['charset']) ? $this->config['charset'] : 'utf8';
