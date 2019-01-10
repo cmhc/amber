@@ -128,4 +128,16 @@ class Route
         return self::$args;
     }
 
+    /**
+     * 获取当前页面的url
+     * @return  string 当前页面的地址
+     */
+    public static function getURL()
+    {
+        if (!self::$routeFounded) {
+            return false;
+        }
+        $home = (($_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . rtrim( stripslashes(dirname($_SERVER['PHP_SELF'])), '/');
+        return $home . self::$requestUri;
+    }
 }
