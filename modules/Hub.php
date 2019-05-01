@@ -20,9 +20,9 @@ class Hub
 
     /**
      * 绑定某个类到hub
-     * @param   $name  
-     * @param   $class 
-     * @return         
+     * @param   $name 别名
+     * @param   $closure 一个可执行闭包
+     * @return
      */
     public static function bind($name, $closure)
     {
@@ -42,7 +42,7 @@ class Hub
     /**
      * 获取单例
      * @param  绑定的名称 $name
-     * @return     
+     * @return
      */
     public static function singleton($name)
     {
@@ -61,5 +61,15 @@ class Hub
         }
 
         return self::$instance[$name];
+    }
+
+    /**
+     * 检查别名是否已经被绑定
+     * @param  string $name
+     * @return boolean
+     */
+    public static function exists($name)
+    {
+        return isset(self::$instance[$name]);
     }
 }
