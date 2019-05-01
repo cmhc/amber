@@ -70,6 +70,6 @@ class Hub
      */
     public static function exists($name)
     {
-        return isset(self::$instance[$name]);
+        return isset(self::$hub[$name]);
     }
 }
