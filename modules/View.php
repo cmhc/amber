@@ -74,7 +74,11 @@ class View
      */
     public function display($view)
     {
-        require $this->__viewPath . '/' . $view;
+        $path = $this->__viewPath . '/' . $view;
+        if (!file_exists($path)) {
+            throw new \Exception("模板文件{$path}不存在", 1);
+        }
+        require $path;
     }
 
     /**

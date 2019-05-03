@@ -1,6 +1,6 @@
 {
     "name": "cmhc/amber",
-    "description": "api framework",
+    "description": "一个应用框架",
     "type": "framework",
     "license": "MIT",
     "authors": [

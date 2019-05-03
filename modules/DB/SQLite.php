@@ -223,7 +223,7 @@ abstract class SQLite
         // 根据scheme重新包装数据
         $insertData = array();
         foreach ($this->scheme['fields'] as $key=>$type) {
-            if ($key == 'id' && !$data[$key]) {
+            if ($key == 'id' && empty($data[$key])) {
                 continue;
             }
             $value = isset($data[$key]) ? $data[$key] : '';
@@ -298,7 +298,11 @@ abstract class SQLite
         }
         $set = rtrim($set, ',');
         $sth = $this->Connection->prepare("UPDATE `{$this->table}` SET {$set} WHERE {$where}");
-        return $sth->execute($data);
+        if ($sth->execute($data)) {
+            return $sth->rowCount();
+        } else {
+            return false;
+        }
     }
 
     /**
