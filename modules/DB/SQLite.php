@@ -126,9 +126,9 @@ abstract class SQLite
         $newTable = 'new_' . $this->table;
         $this->createTable('new_' . $this->table);
         $page = 1;
-        while ($list = $this->list($page, 1000)) {
+        while ($lists = $this->lists($page, 1000)) {
             $this->beginTransaction();
-            foreach ($list as $row) {
+            foreach ($lists as $row) {
                 $this->insert($row, $newTable);
             }
             $this->commit();
@@ -353,9 +353,12 @@ abstract class SQLite
      * @param  string $limit
      * @return array
      */
-    public function gets($where, $bind, $limit = 10)
+    public function gets($where, $bind, $limit = 10, $order = '')
     {
-       $query = "SELECT * FROM `{$this->table}` WHERE {$where}";
+        $query = "SELECT * FROM `{$this->table}` WHERE {$where}";
+        if ($order) {
+            $query .= " ORDER BY {$order}";
+        }
         if ($limit) {
             $query .= " LIMIT {$limit}";
         }
@@ -413,7 +416,7 @@ abstract class SQLite
     /**
      * 列表
      */
-    public function list($page=1, $perpage = 20)
+    public function lists($page=1, $perpage = 20)
     {
         $limit = ($page-1)*$perpage . ',' . $perpage;
         $query = "SELECT * FROM `{$this->table}` LIMIT $limit";
@@ -422,6 +425,20 @@ abstract class SQLite
         } else {
             return false;
         }
+    }
+
+    /**
+     * 获取表行数量
+     * @return int
+     */
+    public function count()
+    {
+        if ($sth = $this->Connection->query("SELECT count(*) FROM `{$this->table}`")) {
+            $res = $sth->fetch();
+            return $res[0];
+        }
+        return false;
+
     }
 
     /**
