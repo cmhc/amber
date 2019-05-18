@@ -30,6 +30,12 @@ abstract class SQLite
      */
     public $table = null;
 
+    /**
+     * 记录最后一条statement错误信息
+     * @var null
+     */
+    protected $statementErrorInfo = null;
+
     public function __construct()
     {
         if (!$this->scheme) {
@@ -53,7 +59,9 @@ abstract class SQLite
         $table = !$table ? $this->table : $table;
         $sth = $this->Connection->query("SELECT `name` from sqlite_master where type='table' AND name='{$table}'");
         if ($sth) {
-            return $sth->fetchAll();
+            $res = $sth->fetchAll();
+            $this->statementErrorInfo = $sth->errorInfo();
+            return $res;
         } else {
             return false;
         }
@@ -248,7 +256,9 @@ abstract class SQLite
         }
         $sth = $this->Connection->prepare("INSERT INTO {$table}({$fields}) VALUES({$placeholder})");
         if ($sth) {
-            return $sth->execute($data);
+            $res = $sth->execute($data);
+            $this->statementErrorInfo = $sth->errorInfo();
+            return $res;
         } else {
             return false;
         }
@@ -300,6 +310,7 @@ abstract class SQLite
         $set = rtrim($set, ',');
         $sth = $this->Connection->prepare("UPDATE `{$this->table}` SET {$set} WHERE {$where}");
         if ($sth->execute($data)) {
+            $this->statementErrorInfo = $sth->errorInfo();
             return $sth->rowCount();
         } else {
             return false;
@@ -342,7 +353,9 @@ abstract class SQLite
         $sth = $this->Connection->prepare($prepare);
         if ($sth) {
             $sth->execute($bind);
-            return $sth->fetch();
+            $res = $sth->fetch();
+            $this->statementErrorInfo = $sth->errorInfo();
+            return $res;
         } else {
             return false;
         }
@@ -366,7 +379,9 @@ abstract class SQLite
         $sth = $this->Connection->prepare($query);
         if ($sth) {
             $sth->execute($bind);
-            return $sth->fetchAll();
+            $res = $sth->fetchAll();
+            $this->statementErrorInfo = $sth->errorInfo();
+            return $res;
         } else {
             return false;
         }
@@ -408,7 +423,9 @@ abstract class SQLite
         $sth = $this->Connection->prepare($query);
         if ($sth) {
             $sth->execute($bind);
-            return $sth->fetchAll();
+            $res = $sth->fetchAll();
+            $this->statementErrorInfo = $sth->errorInfo();
+            return $res;
         } else {
             return false;
         }
@@ -422,7 +439,9 @@ abstract class SQLite
         $limit = ($page-1)*$perpage . ',' . $perpage;
         $query = "SELECT * FROM `{$this->table}` LIMIT $limit";
         if ($sth = $this->Connection->query($query)) {
-            return $sth->fetchAll(); 
+            $res = $sth->fetchAll();
+            $this->statementErrorInfo = $sth->errorInfo();
+            return $res;
         } else {
             return false;
         }
@@ -436,6 +455,7 @@ abstract class SQLite
     {
         if ($sth = $this->Connection->query("SELECT count(*) FROM `{$this->table}`")) {
             $res = $sth->fetch();
+            $this->statementErrorInfo = $sth->errorInfo();
             return $res[0];
         }
         return false;
@@ -444,11 +464,20 @@ abstract class SQLite
 
     /**
      * 显示错误信息
-     * @return string
+     * @return array
      */
     public function errorInfo()
     {
         return $this->Connection->errorInfo();
+    }
+
+    /**
+     * 获取statement error info
+     * @return array
+     */
+    public function statementErrorInfo()
+    {
+        return $this->statementErrorInfo;
     }
 
     /**
