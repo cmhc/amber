@@ -108,6 +108,7 @@ abstract class SQLite
                 } else {
                     $key = $field;
                 }
+                $key = $key . time();
                 $sql = "CREATE {$type} `{$key}` ON `{$table}` (`{$field}`)";
                 $this->Connection->exec($sql);
             }
