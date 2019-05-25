@@ -93,6 +93,11 @@ abstract class SQLite
     public function createTable($table = null)
     {
         $table = $table ? $table : $this->table; // 更新表的时候传入
+        
+        if ($this->tableExists($table)) {
+            return true;
+        }
+
         $sql = "CREATE TABLE `{$table}`(";
         foreach ($this->scheme['fields'] as $column=>$type) {
             if ($column == 'id') {
@@ -122,7 +127,7 @@ abstract class SQLite
             }
         }
 
-        return $this->tableExists();
+        return $this->tableExists($table);
     }
 
     /**
@@ -310,8 +315,8 @@ abstract class SQLite
         $set = rtrim($set, ',');
         $sth = $this->Connection->prepare("UPDATE `{$this->table}` SET {$set} WHERE {$where}");
         if ($sth->execute($data)) {
-            $this->statementErrorInfo = $sth->errorInfo();
-            return $sth->rowCount();
+            $row = $sth->rowCount();
+            return $row;
         } else {
             return false;
         }
@@ -434,10 +439,12 @@ abstract class SQLite
     /**
      * 列表
      */
-    public function lists($page=1, $perpage = 20)
+    public function lists($page=1, $perpage = 20, $orderby = 'id', $order = 'ASC')
     {
-        $limit = ($page-1)*$perpage . ',' . $perpage;
-        $query = "SELECT * FROM `{$this->table}` LIMIT $limit";
+        $sublimit = ($page-1) * $perpage . ',1';
+        $subquery = "SELECT `{$orderby}` FROM `{$this->table}` ORDER BY {$orderby} {$order} LIMIT $sublimit";
+        $op = ($order == 'ASC') ? '>=' : '<=';
+        $query = "SELECT * FROM `{$this->table}` WHERE {$orderby} {$op} ($subquery) ORDER BY {$orderby} {$order} LIMIT $perpage";
         if ($sth = $this->Connection->query($query)) {
             $res = $sth->fetchAll();
             $this->statementErrorInfo = $sth->errorInfo();
