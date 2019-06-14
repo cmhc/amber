@@ -1,40 +1,26 @@
 <?php
 /**
- * SQLite模块
+ * MySQL模块
+ * 同一个配置会共用同一个连接
  */
 namespace amber\modules\DB;
-
 use amber\modules\Hub;
 
-abstract class SQLite
+abstract class MySQL
 {
-    /**
-     * 数据库文件
-     * @var null
-     */
-    protected $dbFile = null;
+    protected $sth = null;
 
     /**
-     * 表结构
-     * @var array
+     * 连接
+     * @var resource
      */
-    protected $scheme = array();
+    protected $Connection;
 
     /**
-     * 数据库连接
+     * 配置
+     * 需要在子类里面定义配置
      */
-    protected $Connection = null;
-
-    /**
-     * 表名称
-     */
-    public $table = null;
-
-    /**
-     * 记录最后一条statement错误信息
-     * @var null
-     */
-    protected $statementErrorInfo = null;
+    protected $config = array();
 
     public function __construct()
     {
@@ -43,48 +29,31 @@ abstract class SQLite
         }
         if (!$this->table) {
             throw new \Exception("需要设置table名称", 1);
-        } 
-        $dbHash = md5($this->dbFile);
-        Hub::bind($dbHash, function(){
-            return new \PDO('sqlite:' . $this->dbFile);
+        }
+        if (!$this->config) {
+            throw new \Exception("需要设置配置文件", 1);
+        }
+
+        $this->dbHash = md5(json_encode($this->config));
+        Hub::bind($this->dbHash, function() {
+            return $this->connect();
         });
-        $this->Connection = Hub::singleton($dbHash);
+        $this->Connection = Hub::singleton($this->dbHash);
     }
 
     /**
-     * 检查表是否存在
+     * 初始化pdo
+     * 连接失败会抛出异常，这里不捕获
      */
-    public function tableExists($table = null)
+    protected function connect()
     {
-        $table = !$table ? $this->table : $table;
-        $sth = $this->Connection->query("SELECT `name` from sqlite_master where type='table' AND name='{$table}'");
-        if ($sth) {
-            $res = $sth->fetchAll();
-            $this->statementErrorInfo = $sth->errorInfo();
-            return $res;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * 获取所有的表
-     * @return array 
-     */
-    public function getTables()
-    {
-        $sth = $this->Connection->query("SELECT `name` from sqlite_master where type='table'");
-        if ($sth) {
-            $tables = array();
-            foreach($sth->fetchAll() as $table) {
-                if (strpos($table['name'], 'sqlite') === false) {
-                    $tables[] = $table;
-                }
-            }
-            return $tables;
-        } else {
-            return array();
-        }
+        $port = isset($this->config['port']) ? $this->config['port'] : 3306;
+        $dsn = "mysql:dbname=" . $this->config['dbname'] . ";host=" . $this->config['host']. ':' . $port;
+        $connection = new \PDO($dsn, $this->config['username'], $this->config['password'], $this->config['options']);
+        $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $charset = isset($this->config['charset']) ? $this->config['charset'] : 'utf8';
+        $connection->query("SET NAMES '{$charset}'");
+        return $connection;
     }
 
     /**
@@ -101,13 +70,13 @@ abstract class SQLite
         $sql = "CREATE TABLE `{$table}`(";
         foreach ($this->scheme['fields'] as $column=>$type) {
             if ($column == 'id') {
-                $sql .= "`$column` $type NOT NULL PRIMARY KEY AUTOINCREMENT,";
+                $sql .= "`$column` $type NOT NULL PRIMARY KEY AUTO_INCREMENT,";
             } else {
                 $sql .= "`$column` $type,";
             }
         }
         $sql = rtrim($sql, ',');
-        $sql .= ")";
+        $sql .= ") ENGINE=MyISAM DEFAULT CHARSET=utf8";
 
         $this->Connection->exec($sql);
 
@@ -122,12 +91,50 @@ abstract class SQLite
                     $key = $field;
                 }
                 $key = $key . time();
+                if (strpos($field, ',')) {
+                    $field = str_replace(',', '`,`', $field);
+                }
                 $sql = "CREATE {$type} `{$key}` ON `{$table}` (`{$field}`)";
                 $this->Connection->exec($sql);
             }
         }
 
         return $this->tableExists($table);
+    }
+
+    /**
+     * 检查表是否存在
+     * @param  string $table 表名称
+     */
+    public function tableExists($table = null)
+    {
+        $table = !$table ? $this->table : $table;
+        $sth = $this->Connection->query("show tables like '{$table}'");
+        if ($sth) {
+            $res = $sth->fetchAll();
+            $this->statementErrorInfo = $sth->errorInfo();
+            return $res[0][0] == $table;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 获取所有的表
+     * @return array 
+     */
+    public function getTables()
+    {
+        $sth = $this->Connection->query("show tables");
+        if ($sth) {
+            $tables = array();
+            foreach($sth->fetchAll() as $table) {
+                $tables[] = $table;
+            }
+            return $tables;
+        } else {
+            return array();
+        }
     }
 
     /**
@@ -157,20 +164,6 @@ abstract class SQLite
     }
 
     /**
-     * 获取之前的数据表
-     * 没有则返回false
-     * @return
-     */
-    public function getOldTable()
-    {
-        if ($this->tableExists('old_' . $this->table)) {
-            return 'old_' . $this->table;
-        } else {
-            return false;
-        }
-    }
-
-    /**
      * 删除表
      * 该方法只会删除游离的表
      * @return boolean
@@ -192,7 +185,8 @@ abstract class SQLite
      */
     public function optimize()
     {
-        $this->Connection->exec("VACUUM");
+
+        $this->Connection->exec("optimize table {$this->table}");
         $error = $this->Connection->errorInfo();
         if ($error[0] == '00000') {
             return true;
@@ -228,13 +222,123 @@ abstract class SQLite
         return $this->Connection->rollBack();
     }
 
+
+    // /**
+    //  * 执行一个查询, 会捕获异常
+    //  * 支持断线重连
+    //  */
+    // public function query($sql, $prepare = array(), $style = \PDO::FETCH_ASSOC, $fetchType = 'fetchAll')
+    // {
+    //     if (!is_array($prepare)) {
+    //         return false;
+    //     }
+
+    //     try {
+    //         $sth = $this->Connection->prepare($sql);
+    //         $sth->execute($prepare);
+    //     } catch (\PDOException $e) {
+    //         if ($e->errorInfo[2] == 'MySQL server has gone away') {
+    //             //重连
+    //             Hub::destory($this->dbHash);
+    //             $this->Connection = Hub::singleton($this->dbHash);
+    //         }
+    //         return false;
+    //     }
+    //     $result = $sth->$fetchType($style);
+
+    //     // 如果只是fetch一条，需要关闭游标下一次才能继续执行相同的查询
+    //     if ($fetchType == 'fetch') {
+    //         $sth->closeCursor();
+    //     }
+
+    //     $this->sth = $sth;
+    //     return $result;
+    // }
+
+   /**
+     * 查询单行数据
+     * @param  string $where
+     * @param  array $bind
+     */
+    public function get($where, $bind)
+    {
+        return $this->getVars(['*'], $where, $bind);
+    }
+
     /**
-     * 插入操作
+     * 获取单个字段
+     */
+    public function getVar($field, $where, $bind)
+    {
+        $data = $this->getVars([$field], $where, $bind);
+        if ($data) {
+            return $data[$field];
+        } else {
+            return false;
+        }
+    }
+    /**
+     * 获取多个field字段
+     * @param  array $fields
+     * @param  string $where 条件
+     * @param  array $bind 绑定字段
+     * @return array | boolean
+     */
+    public function getVars(array $fields, $where, $bind)
+    {
+        $field = implode(',', $fields);
+        $prepare = "SELECT $field FROM `{$this->table}` WHERE {$where} LIMIT 1";
+        $sth = $this->Connection->prepare($prepare);
+        if ($sth) {
+            $sth->execute($bind);
+            $res = $sth->fetch(\PDO::FETCH_ASSOC);
+            $this->statementErrorInfo = $sth->errorInfo();
+            $sth->closeCursor();
+            return $res;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 获取列表
+     * @param  string $where 
+     * @param  string $limit
+     * @return array
+     */
+    public function gets($where = '', $bind = array(), $limit = '10', $order = '')
+    {
+        $query = "SELECT * FROM `{$this->table}`";
+        if ($where) {
+            $query .= " WHERE {$where}";
+        }
+        if ($order) {
+            $query .= " ORDER BY {$order}";
+        }
+        if ($limit) {
+            $query .= " LIMIT {$limit}";
+        }
+        $sth = $this->Connection->prepare($query);
+        if ($sth) {
+            $sth->execute($bind);
+            $res = $sth->fetchAll(\PDO::FETCH_ASSOC);
+            $this->statementErrorInfo = $sth->errorInfo();
+            return $res;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * insert action
+     * @param  string $table table name
+     * @param  array  $data  data
+     * @return boolean
      */
     public function insert($data, $table = null)
     {
         $table = !$table ? $this->table : $table;
-        // 根据scheme重新包装数据
+       // 根据scheme重新包装数据
         $insertData = array();
         foreach ($this->scheme['fields'] as $key=>$type) {
             if ($key == 'id' && empty($data[$key])) {
@@ -270,7 +374,21 @@ abstract class SQLite
     }
 
     /**
+     * 同时插入多行数据
+     * @param  array $data
+     * $data = array('field'=>array("field1","field2"),"data"=>array("d1,d2","d1,d2"))
+     */
+    public function minsert($table, aray $data)
+    {
+        $fields = implode(",",$data['field']);
+        $values = '(' . implode('),(',$data['data']) . ')';
+        $sql = "INSERT INTO {$table}($fields) VALUES{$values}";
+        return $this->Connection->exec($sql);
+    }
+
+    /**
      * 删除操作
+     * @param  string $where
      */
     public function delete($where)
     {
@@ -323,120 +441,20 @@ abstract class SQLite
     }
 
     /**
-     * 查询单行数据
-     * @param  string $where
-     * @param  array $bind
+     * 删除表
+     * @param  string $table
+     * @return boolean
      */
-    public function get($where, $bind)
+    public function dropTable($table = null)
     {
-        return $this->getVars(['*'], $where, $bind);
+        $table = $table ? $table : $this->table;
+        if (!$this->tableExists($table)) {
+            return true;
+        }
+        return $this->Connection->exec("DROP TABLE `{$table}`");
     }
 
-    /**
-     * 获取单个字段
-     */
-    public function getVar($field, $where, $bind)
-    {
-        $data = $this->getVars([$field], $where, $bind);
-        if ($data) {
-            return $data[$field];
-        } else {
-            return false;
-        }
-    }
-    /**
-     * 获取多个field字段
-     * @param  array $fields
-     * @param  string $where 条件
-     * @param  array $bind 绑定字段
-     * @return array | boolean
-     */
-    public function getVars(array $fields, $where, $bind)
-    {
-        $field = implode(',', $fields);
-        $prepare = "SELECT $field FROM `{$this->table}` WHERE {$where} LIMIT 1";
-        $sth = $this->Connection->prepare($prepare);
-        if ($sth) {
-            $sth->execute($bind);
-            $res = $sth->fetch();
-            $this->statementErrorInfo = $sth->errorInfo();
-            return $res;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * 获取列表
-     * @param  string $where 
-     * @param  string $limit
-     * @return array
-     */
-    public function gets($where, $bind, $limit = 10, $order = '')
-    {
-        $query = "SELECT * FROM `{$this->table}` WHERE {$where}";
-        if ($order) {
-            $query .= " ORDER BY {$order}";
-        }
-        if ($limit) {
-            $query .= " LIMIT {$limit}";
-        }
-        $sth = $this->Connection->prepare($query);
-        if ($sth) {
-            $sth->execute($bind);
-            $res = $sth->fetchAll();
-            $this->statementErrorInfo = $sth->errorInfo();
-            return $res;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * 联合查询
-     * @param  array  $sql
-     * @param  array  $bind
-     * @param  array  $limit
-     * @return 
-     */
-    public function union(array $where, array $bind, array $limit = array(), array $order = array())
-    {
-        $count = count($where);
-        // 所有的必须相等
-        if ($count !== count($bind)) {
-            return false;
-        }
-        if ($count !== count($bind) || 
-            ($limit && $count !== count($limit)) ||
-            ($order && $count !== count($order))
-        ) {
-            return false;
-        } 
-        //union开始
-        $query = '';
-        for ($i=0; $i<$count; $i++) {
-            $query .= "SELECT * FROM (SELECT * FROM `{$this->table}` WHERE {$where[0]}";
-            if ($limit) {
-                $query .= " LIMIT $limit[0]";
-            }
-            if ($order) {
-                $query .= " ORDER BY {$order}";
-            }
-            $query .= ') UNION ALL ';
-        }
-        $query = rtrim($query, 'UNION ALL ');
-        $sth = $this->Connection->prepare($query);
-        if ($sth) {
-            $sth->execute($bind);
-            $res = $sth->fetchAll();
-            $this->statementErrorInfo = $sth->errorInfo();
-            return $res;
-        } else {
-            return false;
-        }
-    }
-
-    /**
+   /**
      * 列表
      */
     public function lists($page=1, $perpage = 20, $orderby = 'id', $order = 'ASC')
@@ -469,12 +487,19 @@ abstract class SQLite
     }
 
     /**
-     * 显示错误信息
-     * @return array
+     * 获取最后一个错误信息
      */
     public function errorInfo()
     {
         return $this->Connection->errorInfo();
+    }
+
+    /**
+     * 获取插入id
+     */
+    public function lastInsertId()
+    {
+        return $this->Connection->lastInsertId();
     }
 
     /**
@@ -486,12 +511,12 @@ abstract class SQLite
         return $this->statementErrorInfo;
     }
 
+
     /**
-     * 获取dbsize
-     * @return
+     * get debug params
      */
-    public function dbSize()
+    public function debugDumpParams()
     {
-        return filesize($this->dbFile);
+        return $this->sth->debugDumpParams();
     }
 }
