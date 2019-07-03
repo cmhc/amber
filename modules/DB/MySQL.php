@@ -57,6 +57,15 @@ abstract class MySQL
     }
 
     /**
+     * 获取表名称
+     * @return string
+     */
+    public function getTableName()
+    {
+        return $this->table;
+    }
+
+    /**
      * 创建表
      */
     public function createTable($table = null)
@@ -91,10 +100,7 @@ abstract class MySQL
                     $key = $field;
                 }
                 $key = $key . time();
-                if (strpos($field, ',')) {
-                    $field = str_replace(',', '`,`', $field);
-                }
-                $sql = "CREATE {$type} `{$key}` ON `{$table}` (`{$field}`)";
+                $sql = "ALTER TABLE `{$table}` ADD {$type} (`{$field}`)";
                 $this->Connection->exec($sql);
             }
         }
@@ -168,9 +174,10 @@ abstract class MySQL
      * 该方法只会删除游离的表
      * @return boolean
      */
-    public function deleteTable($tableName)
+    public function deleteTable($table = null)
     {
-        $this->Connection->exec("DROP TABLE $tableName");
+        $table = $table ? $table : $this->table;
+        $this->Connection->exec("DROP TABLE $table");
         $error = $this->Connection->errorInfo();
         if ($error[0] == '00000') {
             return true;
@@ -221,39 +228,6 @@ abstract class MySQL
     {
         return $this->Connection->rollBack();
     }
-
-
-    // /**
-    //  * 执行一个查询, 会捕获异常
-    //  * 支持断线重连
-    //  */
-    // public function query($sql, $prepare = array(), $style = \PDO::FETCH_ASSOC, $fetchType = 'fetchAll')
-    // {
-    //     if (!is_array($prepare)) {
-    //         return false;
-    //     }
-
-    //     try {
-    //         $sth = $this->Connection->prepare($sql);
-    //         $sth->execute($prepare);
-    //     } catch (\PDOException $e) {
-    //         if ($e->errorInfo[2] == 'MySQL server has gone away') {
-    //             //重连
-    //             Hub::destory($this->dbHash);
-    //             $this->Connection = Hub::singleton($this->dbHash);
-    //         }
-    //         return false;
-    //     }
-    //     $result = $sth->$fetchType($style);
-
-    //     // 如果只是fetch一条，需要关闭游标下一次才能继续执行相同的查询
-    //     if ($fetchType == 'fetch') {
-    //         $sth->closeCursor();
-    //     }
-
-    //     $this->sth = $sth;
-    //     return $result;
-    // }
 
    /**
      * 查询单行数据
@@ -306,9 +280,16 @@ abstract class MySQL
      * @param  string $limit
      * @return array
      */
-    public function gets($where = '', $bind = array(), $limit = '10', $order = '')
+    public function gets($where = '', $bind = array(), $limit = '10', $order = '', $fields = '*')
     {
-        $query = "SELECT * FROM `{$this->table}`";
+        if (strpos($fields, ',') !== false) {
+            $fields = explode(',', $fields);
+            $fields = array_map(function($field){
+                return trim($field);
+            }, $fields);
+            $fields = implode('`,`', $fields);
+        }
+        $query = "SELECT `{$fields}` FROM `{$this->table}`";
         if ($where) {
             $query .= " WHERE {$where}";
         }
@@ -318,6 +299,7 @@ abstract class MySQL
         if ($limit) {
             $query .= " LIMIT {$limit}";
         }
+        // echo $query;
         $sth = $this->Connection->prepare($query);
         if ($sth) {
             $sth->execute($bind);
@@ -328,7 +310,53 @@ abstract class MySQL
             return false;
         }
     }
-    
+
+    /**
+     * 联合查询
+     * @param  array  $where
+     * @param  array  $bind
+     * @param  array  $limit
+     * @param  array  $order
+     * @return 
+     */
+    public function union(array $where, array $bind, array $limit = array(), array $order = array(), $fields = '*')
+    {
+        $count = count($where);
+        // 所有的必须相等
+        if ($count !== count($bind)) {
+            return false;
+        }
+        if ($count !== count($bind) || 
+            ($limit && $count !== count($limit)) ||
+            ($order && $count !== count($order))
+        ) {
+            return false;
+        } 
+
+        //union开始
+        $query = '';
+        for ($i=0; $i<$count; $i++) {
+            $query .= "SELECT `{$fields}` FROM (SELECT `{$fields}` FROM `{$this->table}` WHERE {$where[$i]}";
+            if ($order[$i]) {
+                $query .= " ORDER BY {$order[$i]}";
+            }
+            if ($limit) {
+                $query .= " LIMIT $limit[$i]";
+            }
+            $query .= ') as t UNION ALL ';
+        }
+        $query = rtrim($query, 'UNION ALL ');
+        $sth = $this->Connection->prepare($query);
+        if ($sth) {
+            $sth->execute($bind);
+            $res = $sth->fetchAll();
+            $this->statementErrorInfo = $sth->errorInfo();
+            return $res;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * insert action
      * @param  string $table table name
