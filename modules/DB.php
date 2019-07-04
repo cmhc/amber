@@ -239,8 +239,8 @@ class DB
     public function createTable($table, $data, $key = null)
     {
         $sql = "CREATE TABLE `{$table}`(";
-        foreach($data as $column=>$type){
-            if( $column == 'id' ){
+        foreach($data as $column => $type){
+            if ($column == 'id') {
                 $sql .= "`$column` $type UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,";
             }else{
                 $sql .= "`$column` $type,";

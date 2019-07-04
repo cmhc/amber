@@ -466,7 +466,6 @@ abstract class SQLite
             return $res[0];
         }
         return false;
-
     }
 
     /**

@@ -14,6 +14,12 @@ class Config
     protected static $configFile;
 
     /**
+     * 配置文件所在路径
+     * @var string
+     */
+    protected static $configDir;
+
+    /**
      * get config
      * @param  string $key
      * @return mixed
@@ -43,6 +49,15 @@ class Config
     }
 
     /**
+     * 设置配置文件所在的文件夹
+     * @param string $dir 文件夹
+     */
+    public static function setConfigDir($dir) 
+    {
+        self::$configDir = rtrim($dir, '/');
+    }
+
+    /**
      * get config file
      * @param $key
      */
@@ -51,15 +66,10 @@ class Config
         if (isset(self::$configFile[$key]) && file_exists(self::$configFile[$key])) {
             return require self::$configFile[$key];
         }
-        if (defined('BASE_DIR')) {
-            $basedir = BASE_DIR;
-        } else {
-            $dirname = str_replace('\\', '/', __DIR__);
-            $namespace = str_replace('\\', '/', __NAMESPACE__);
-            $basedir = str_replace($namespace, '', $dirname);
+        if (empty(self::$configDir)) {
+            throw new \Exception("需要使用Config::getConfigDir()设置配置文件所在路径", 1);
         }
-
-        self::$configFile[$key] = $basedir . '/' . str_replace('\\', '/', $key . '.php');
+        self::$configFile[$key] = self::$configDir . '/' . $key . '.php';
         if (file_exists(self::$configFile[$key])) {
             return require self::$configFile[$key];
         }

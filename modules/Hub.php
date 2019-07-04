@@ -10,13 +10,13 @@ class Hub
      * hub集合
      * @var array
      */
-    public static $hub = array();
+    protected static $hub = array();
 
     /**
      * 实例集合
      * @var array
      */
-    public static $instance = array();
+    protected static $instance = array();
 
     /**
      * 绑定某个类到hub
@@ -61,6 +61,16 @@ class Hub
         }
 
         return self::$instance[$name];
+    }
+
+    /**
+     * 释放singleton对象
+     * @param  string $name
+     * @return
+     */
+    public static function destory($name)
+    {
+        unset(self::$instance[$name]);
     }
 
     /**
