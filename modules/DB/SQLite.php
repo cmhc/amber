@@ -1,11 +1,11 @@
 <?php
-/**
- * SQLite模块
- */
 namespace amber\modules\DB;
 
 use amber\modules\Hub;
 
+/**
+ * SQLite模块
+ */
 abstract class SQLite
 {
     /**
@@ -153,6 +153,9 @@ abstract class SQLite
         $this->Connection->exec("DROP TABLE $oldTable");
         $this->Connection->exec("ALTER TABLE {$this->table} RENAME TO $oldTable");
         $this->Connection->exec("ALTER TABLE {$newTable} RENAME TO $this->table");
+        if ($this->statementErrorInfo[2] != '') {
+            throw new \Exception("更新表异常, 错误信息:" . $this->statementErrorInfo[2], 1000);
+        }
         return true;
     }
 

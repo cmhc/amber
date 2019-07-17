@@ -1,11 +1,12 @@
 <?php
+namespace amber\modules\DB;
+
+use amber\modules\Hub;
+
 /**
  * MySQL模块
  * 同一个配置会共用同一个连接
  */
-namespace amber\modules\DB;
-use amber\modules\Hub;
-
 abstract class MySQL
 {
     protected $sth = null;

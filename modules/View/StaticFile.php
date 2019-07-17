@@ -9,7 +9,6 @@ class StaticFile
 {
     protected static $files;
 
-
     public static function add($path, $group)
     {
         self::$files[$group][] = [$path, 'path'];
@@ -41,5 +40,10 @@ class StaticFile
             }
         }
         return $content;
+    }
+
+    public static function clear()
+    {
+        self::$files = array();
     }
 }

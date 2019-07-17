@@ -1,8 +1,10 @@
 <?php
+namespace amber\contracts;
+
 /**
- * DB接口
+ * 数据库接口
  */
-interface Contract
+interface Database
 {
 
     /**
@@ -97,10 +99,10 @@ interface Contract
 
     /**
      * 列出一些行
-     * @param  integer $page    
-     * @param  integer $perpage 
-     * @param  string  $orderby 
-     * @param  string  $order   
+     * @param  integer $page
+     * @param  integer $perpage
+     * @param  string  $orderby
+     * @param  string  $order
      * @return array
      */
     public function lists($page = 1, $perpage = 20, $orderby = 'id', $order = 'ASC');
