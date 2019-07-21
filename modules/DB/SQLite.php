@@ -380,9 +380,19 @@ abstract class SQLite
      * @param  string $limit
      * @return array
      */
-    public function gets($where, $bind, $limit = 10, $order = '')
+    public function gets($where, $bind, $limit = 10, $order = '', $fields = '*')
     {
-        $query = "SELECT * FROM `{$this->table}` WHERE {$where}";
+        if ($fields != '*' && strpos($fields, ',') !== false) {
+            $fields = explode(',', $fields);
+            $fields = array_map(function($field){
+                return trim($field);
+            }, $fields);
+            $fields = '`' . implode('`,`', $fields) . '`';
+        }
+        $query = "SELECT {$fields} FROM `{$this->table}`";
+        if ($where) {
+            $query .= " WHERE {$where}";
+        }
         if ($order) {
             $query .= " ORDER BY {$order}";
         }

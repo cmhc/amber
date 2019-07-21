@@ -283,14 +283,14 @@ abstract class MySQL
      */
     public function gets($where = '', $bind = array(), $limit = '10', $order = '', $fields = '*')
     {
-        if (strpos($fields, ',') !== false) {
+        if ($fields != '*' && strpos($fields, ',') !== false) {
             $fields = explode(',', $fields);
             $fields = array_map(function($field){
                 return trim($field);
             }, $fields);
-            $fields = implode('`,`', $fields);
+            $fields = '`' . implode('`,`', $fields) . '`';
         }
-        $query = "SELECT `{$fields}` FROM `{$this->table}`";
+        $query = "SELECT {$fields} FROM `{$this->table}`";
         if ($where) {
             $query .= " WHERE {$where}";
         }
