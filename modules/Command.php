@@ -50,13 +50,6 @@ class Command
         if (file_exists($projectDir)) {
             throw new \Exception("项目已经存在", 1);
         }
-
-        if (!mkdir($projectDir) || !mkdir($projectDir . '/amber')) {
-            throw new \Exception("创建文件夹失败", 1);
-            return ;
-        }
-        //复制amber目录
-        $this->File->copyr(dirname(__DIR__), $projectDir . '/amber' );
         //复制项目文件
         $this->File->copyr(dirname(__DIR__) . '/examples/site', $projectDir);
     }
@@ -71,8 +64,6 @@ class Command
         if (!file_exists($projectDir)) {
             throw new \Exception("项目不存在", 1);
         }
-        //更新amber
-        $this->File->copyr(dirname(__DIR__), $projectDir . '/amber', true);
     }
 
     /**

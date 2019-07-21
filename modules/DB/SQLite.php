@@ -99,7 +99,8 @@ abstract class SQLite
         }
 
         $sql = "CREATE TABLE `{$table}`(";
-        foreach ($this->scheme['fields'] as $column=>$type) {
+        foreach ($this->scheme['fields'] as $column => $type) {
+            $type = preg_replace('/int\([0-9]*\)/i', 'INTEGER', $type);
             if ($column == 'id') {
                 $sql .= "`$column` $type NOT NULL PRIMARY KEY AUTOINCREMENT,";
             } else {
@@ -108,8 +109,12 @@ abstract class SQLite
         }
         $sql = rtrim($sql, ',');
         $sql .= ")";
-
+        
         $this->Connection->exec($sql);
+        $errorInfo = $this->errorInfo();
+        if ($errorInfo[2]) {
+            throw new \Exception($error[2], 1);
+        }
 
         // 创建索引
         if ($this->scheme['keys']) {
