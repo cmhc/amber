@@ -15,12 +15,6 @@ abstract class SQLite
     protected $dbFile = null;
 
     /**
-     * 表结构
-     * @var array
-     */
-    protected $scheme = array();
-
-    /**
      * 数据库连接
      */
     protected $Connection = null;
@@ -28,7 +22,7 @@ abstract class SQLite
     /**
      * 表名称
      */
-    public $table = null;
+    public $tableName = null;
 
     /**
      * 记录最后一条statement错误信息
@@ -36,16 +30,48 @@ abstract class SQLite
      */
     protected $statementErrorInfo = null;
 
+    /**
+     * 子类需要实现获取表名称的方法
+     * @return string
+     */
+    abstract public function getTableName();
+
+    /**
+     * 子类需要实现的get scheme方法，用于建表
+     * @return array
+     */
+    abstract public function getScheme();
+
+    /**
+     * 子类需要实现的排序字段的方法
+     * @return stirng
+     */
+    abstract public function getSortKey();
+
+    /**
+     * 子类需要实现获取普通索引的方法
+     * @return array
+     */
+    abstract public function getKeys();
+
+    /**
+     * 子类需要实现的获取主键的方法
+     * @return string
+     */
+    abstract public function getPrimaryKey();
+
+    /**
+     * 子类需要实现的获取唯一键的方法
+     * @return array()
+     */
+    abstract public function getUniqueKeys();
+
+
     public function __construct()
     {
-        if (!$this->scheme) {
-            throw new \Exception("需要设定scheme", 1);
-        }
-        if (!$this->table) {
-            throw new \Exception("需要设置table名称", 1);
-        } 
+        $this->tableName = $this->getTableName();
         $dbHash = md5($this->dbFile);
-        Hub::bind($dbHash, function(){
+        Hub::bind($dbHash, function() {
             return new \PDO('sqlite:' . $this->dbFile);
         });
         $this->Connection = Hub::singleton($dbHash);
@@ -56,7 +82,7 @@ abstract class SQLite
      */
     public function tableExists($table = null)
     {
-        $table = !$table ? $this->table : $table;
+        $table = $table ? $table : $this->tableName;
         $sth = $this->Connection->query("SELECT `name` from sqlite_master where type='table' AND name='{$table}'");
         if ($sth) {
             $res = $sth->fetchAll();
@@ -89,36 +115,40 @@ abstract class SQLite
 
     /**
      * 创建表
+     * @param  mixed $table 表名称，更新表的时候可以穿入，自定义表名称
+     * @return boolean
      */
     public function createTable($table = null)
     {
-        $table = $table ? $table : $this->table; // 更新表的时候传入
+        $table = $table ? $table : $this->tableName;
         
         if ($this->tableExists($table)) {
             return true;
         }
 
+        $primaryKey = $this->getPrimaryKey();
         $sql = "CREATE TABLE `{$table}`(";
-        foreach ($this->scheme['fields'] as $column => $type) {
+        foreach ($this->getScheme() as $column => $type) {
             $type = preg_replace('/int\([0-9]*\)/i', 'INTEGER', $type);
-            if ($column == 'id') {
-                $sql .= "`$column` $type NOT NULL PRIMARY KEY AUTOINCREMENT,";
-            } else {
-                $sql .= "`$column` $type,";
-            }
+            $sql .= "`$column` $type,";
+        }
+        // 存在主键则添加
+        if ($primaryKey = $this->getPrimaryKey()) {
+            $sql .= "PRIMARY KEY ($primaryKey)";
         }
         $sql = rtrim($sql, ',');
         $sql .= ")";
         
-        $this->Connection->exec($sql);
-        $errorInfo = $this->errorInfo();
-        if ($errorInfo[2]) {
-            throw new \Exception($error[2], 1);
+        $this->Connection->beginTransaction();
+
+        if (false === $this->Connection->exec($sql)) {
+            $this->Connection->rollBack();
+            $this->exceptionHandle();
         }
 
-        // 创建索引
-        if ($this->scheme['keys']) {
-            foreach ($this->scheme['keys'] as $field => $type) {
+        // 创建普通索引
+        if ($keys = $this->getKeys()) {
+            foreach ($keys as $field) {
                 if (strpos($field, ',') !== false) {
                     $fields = explode(',', $field);
                     $field = implode("`,`", $fields);
@@ -127,12 +157,45 @@ abstract class SQLite
                     $key = $field;
                 }
                 $key = $key . time();
-                $sql = "CREATE {$type} `{$key}` ON `{$table}` (`{$field}`)";
-                $this->Connection->exec($sql);
+                $sql = "CREATE INDEX `{$key}` ON `{$table}` (`{$field}`)";
+                if (false === $this->Connection->exec($sql)) {
+                    $this->Connection->rollBack();
+                    $this->exceptionHandle();
+                }
             }
         }
 
-        return $this->tableExists($table);
+        //创建唯一值索引
+        if ($keys = $this->getUniqueKeys()) {
+            foreach ($keys as $field) {
+                if (strpos($field, ',') !== false) {
+                    $fields = explode(',', $field);
+                    $field = implode("`,`", $fields);
+                    $key = implode(mt_rand(0,99), $fields);
+                } else {
+                    $key = $field;
+                }
+                $key = $key . time();
+                $sql = "CREATE UNIQUE INDEX `{$key}` ON `{$table}` (`{$field}`)";
+                if (fasle === $this->Connection->exec($sql)) {
+                    $this->Connection->rollBack();
+                    $this->exceptionHandle();
+                }
+            }
+        }
+
+        $this->Connection->commit();
+        return true;
+    }
+
+    /**
+     * 异常处理
+     * @return void
+     */
+    protected function exceptionHandle()
+    {
+        $errorInfo = $this->Connection->errorInfo();
+        throw new \Exception($errorInfo[2], 1);
     }
 
     /**
@@ -142,8 +205,8 @@ abstract class SQLite
      */
     public function updateTable()
     {
-        $newTable = 'new_' . $this->table;
-        $this->createTable('new_' . $this->table);
+        $newTable = 'new_' . $this->tableName;
+        $this->createTable('new_' . $this->tableName);
         $page = 1;
         while ($lists = $this->lists($page, 1000)) {
             $this->beginTransaction();
@@ -153,14 +216,11 @@ abstract class SQLite
             $this->commit();
             $page += 1;
         }
-        $oldTable = 'old_' . $this->table;
+        $oldTable = 'old_' . $this->tableName;
         // 删除老的表，并且将现在的表重命名为老的表
         $this->Connection->exec("DROP TABLE $oldTable");
-        $this->Connection->exec("ALTER TABLE {$this->table} RENAME TO $oldTable");
-        $this->Connection->exec("ALTER TABLE {$newTable} RENAME TO $this->table");
-        if ($this->statementErrorInfo[2] != '') {
-            throw new \Exception("更新表异常, 错误信息:" . $this->statementErrorInfo[2], 1000);
-        }
+        $this->Connection->exec("ALTER TABLE " . $this->tableName . " RENAME TO $oldTable");
+        $this->Connection->exec("ALTER TABLE {$newTable} RENAME TO " . $this->tableName);
         return true;
     }
 
@@ -171,8 +231,8 @@ abstract class SQLite
      */
     public function getOldTable()
     {
-        if ($this->tableExists('old_' . $this->table)) {
-            return 'old_' . $this->table;
+        if ($this->tableExists('old_' . $this->tableName)) {
+            return 'old_' . $this->tableName;
         } else {
             return false;
         }
@@ -241,10 +301,10 @@ abstract class SQLite
      */
     public function insert($data, $table = null)
     {
-        $table = !$table ? $this->table : $table;
+        $table = $table ? $table : $this->tableName;
         // 根据scheme重新包装数据
         $insertData = array();
-        foreach ($this->scheme['fields'] as $key=>$type) {
+        foreach ($this->getScheme() as $key=>$type) {
             if ($key == 'id' && empty($data[$key])) {
                 continue;
             }
@@ -282,7 +342,7 @@ abstract class SQLite
      */
     public function delete($where)
     {
-        return $this->Connection->exec("DELETE FROM {$this->table} WHERE {$where}");
+        return $this->Connection->exec("DELETE FROM {$this->tableName} WHERE {$where}");
     }
 
     /**
@@ -301,11 +361,12 @@ abstract class SQLite
         $set = '';
         // 根据scheme重新包装数据
         $updateData = array();
-        foreach ($this->scheme['fields'] as $key=>$type) {
-            if ($key == 'id' && (!isset($data[$key]) || !$data[$key])) {
+        foreach ($this->getScheme() as $key=>$type) {
+            if (!isset($data[$key])) {
                 continue;
             }
-            if (!isset($data[$key])) {
+            // 主键不更新
+            if ($key == $this->getPrimaryKey()) {
                 continue;
             }
             $updateData[$key] = $data[$key];
@@ -321,7 +382,7 @@ abstract class SQLite
             }
         }
         $set = rtrim($set, ',');
-        $sth = $this->Connection->prepare("UPDATE `{$this->table}` SET {$set} WHERE {$where}");
+        $sth = $this->Connection->prepare("UPDATE `{$this->tableName}` SET {$set} WHERE {$where}");
         if ($sth->execute($data)) {
             $row = $sth->rowCount();
             return $row;
@@ -362,7 +423,7 @@ abstract class SQLite
     public function getVars(array $fields, $where, $bind)
     {
         $field = implode(',', $fields);
-        $prepare = "SELECT $field FROM `{$this->table}` WHERE {$where} LIMIT 1";
+        $prepare = "SELECT $field FROM `{$this->tableName}` WHERE {$where} LIMIT 1";
         $sth = $this->Connection->prepare($prepare);
         if ($sth) {
             $sth->execute($bind);
@@ -389,7 +450,7 @@ abstract class SQLite
             }, $fields);
             $fields = '`' . implode('`,`', $fields) . '`';
         }
-        $query = "SELECT {$fields} FROM `{$this->table}`";
+        $query = "SELECT {$fields} FROM `{$this->tableName}`";
         if ($where) {
             $query .= " WHERE {$where}";
         }
@@ -433,7 +494,7 @@ abstract class SQLite
         //union开始
         $query = '';
         for ($i=0; $i<$count; $i++) {
-            $query .= "SELECT * FROM (SELECT * FROM `{$this->table}` WHERE {$where[0]}";
+            $query .= "SELECT * FROM (SELECT * FROM `{$this->tableName}` WHERE {$where[0]}";
             if ($limit) {
                 $query .= " LIMIT $limit[0]";
             }
@@ -457,12 +518,14 @@ abstract class SQLite
     /**
      * 列表
      */
-    public function lists($page=1, $perpage = 20, $orderby = 'id', $order = 'ASC')
+    public function lists($page=1, $perpage = 20, $orderby = null, $order = null)
     {
         $sublimit = ($page-1) * $perpage . ',1';
-        $subquery = "SELECT `{$orderby}` FROM `{$this->table}` ORDER BY {$orderby} {$order} LIMIT $sublimit";
+        $orderby = $orderby ? $orderby : $this->getSortKey();
+        $order = $order ? $order : 'ASC';
+        $subquery = "SELECT `{$orderby}` FROM `{$this->tableName}` ORDER BY {$orderby} {$order} LIMIT $sublimit";
         $op = ($order == 'ASC') ? '>=' : '<=';
-        $query = "SELECT * FROM `{$this->table}` WHERE {$orderby} {$op} ($subquery) ORDER BY {$orderby} {$order} LIMIT $perpage";
+        $query = "SELECT * FROM `{$this->tableName}` WHERE {$orderby} {$op} ($subquery) ORDER BY {$orderby} {$order} LIMIT $perpage";
         if ($sth = $this->Connection->query($query)) {
             $res = $sth->fetchAll();
             $this->statementErrorInfo = $sth->errorInfo();
@@ -478,7 +541,7 @@ abstract class SQLite
      */
     public function count()
     {
-        if ($sth = $this->Connection->query("SELECT count(*) FROM `{$this->table}`")) {
+        if ($sth = $this->Connection->query("SELECT count(*) FROM `{$this->tableName}`")) {
             $res = $sth->fetch();
             $this->statementErrorInfo = $sth->errorInfo();
             return $res[0];
