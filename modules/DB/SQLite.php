@@ -43,12 +43,6 @@ abstract class SQLite
     abstract public function getScheme();
 
     /**
-     * 子类需要实现的排序字段的方法
-     * @return stirng
-     */
-    abstract public function getSortKey();
-
-    /**
      * 子类需要实现获取普通索引的方法
      * @return array
      */
@@ -177,7 +171,7 @@ abstract class SQLite
                 }
                 $key = $key . time();
                 $sql = "CREATE UNIQUE INDEX `{$key}` ON `{$table}` (`{$field}`)";
-                if (fasle === $this->Connection->exec($sql)) {
+                if (false === $this->Connection->exec($sql)) {
                     $this->Connection->rollBack();
                     $this->exceptionHandle();
                 }
@@ -481,25 +475,15 @@ abstract class SQLite
     public function union(array $where, array $bind, array $limit = array(), array $order = array())
     {
         $count = count($where);
-        // 所有的必须相等
-        if ($count !== count($bind)) {
-            return false;
-        }
-        if ($count !== count($bind) || 
-            ($limit && $count !== count($limit)) ||
-            ($order && $count !== count($order))
-        ) {
-            return false;
-        } 
         //union开始
         $query = '';
         for ($i=0; $i<$count; $i++) {
             $query .= "SELECT * FROM (SELECT * FROM `{$this->tableName}` WHERE {$where[0]}";
             if ($limit) {
-                $query .= " LIMIT $limit[0]";
+                $query .= " LIMIT $limit[$i]";
             }
             if ($order) {
-                $query .= " ORDER BY {$order}";
+                $query .= " ORDER BY {$order[$i]}";
             }
             $query .= ') UNION ALL ';
         }
@@ -521,7 +505,16 @@ abstract class SQLite
     public function lists($page=1, $perpage = 20, $orderby = null, $order = null)
     {
         $sublimit = ($page-1) * $perpage . ',1';
-        $orderby = $orderby ? $orderby : $this->getSortKey();
+        if (!$orderby) {
+            if (method_exists($this, 'getSortKey')) {
+                $orderby = $this->getSortKey();
+            } else if (method_exists($this, 'getPrimaryKey')) {
+                $orderby = $this->getPrimaryKey();
+            }
+        }
+        if (!$orderby) {
+            throw new Exception("排序key不存在", 1);
+        }
         $order = $order ? $order : 'ASC';
         $subquery = "SELECT `{$orderby}` FROM `{$this->tableName}` ORDER BY {$orderby} {$order} LIMIT $sublimit";
         $op = ($order == 'ASC') ? '>=' : '<=';

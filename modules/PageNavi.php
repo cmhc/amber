@@ -73,7 +73,7 @@ class PageNavi
         }
 
         if ($current < $this->allPage - $half) {
-            $html .= sprintf($this->template,(int) ($end + $this->allPage)/2 , '...');
+            $html .= sprintf($this->template, (int) ($end + $this->allPage)/2 , '...');
             $html .= sprintf($this->template, $this->allPage, $this->allPage);
         }
         return $html;

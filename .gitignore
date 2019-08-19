@@ -6,3 +6,5 @@ composer.lock
 config.php
 !modules/Config.php
 .htaccess
+*.log
+*.log.lock
