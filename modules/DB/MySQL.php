@@ -5,7 +5,7 @@
  * @Author: huchao06
  * @Date:   2019-08-31 10:54:20
  * @Last Modified by:   huchao06
- * @Last Modified time: 2019-09-15 22:34:31
+ * @Last Modified time: 2019-09-18 21:58:02
  */
 
 namespace amber\modules\DB;
@@ -314,20 +314,28 @@ abstract class MySQL extends Base
    /**
      * 列表
      */
-    public function lists($page=1, $perpage = 20, $orderby = 'id', $order = 'ASC')
+    public function lists($page=1, $perpage = 20, $orderby = null, $order = null)
     {
         $sublimit = ($page-1) * $perpage . ',1';
+        if (!$orderby) {
+            if (method_exists($this, 'getSortKey')) {
+                $orderby = $this->getSortKey();
+            } else if (method_exists($this, 'getPrimaryKey')) {
+                $orderby = $this->getPrimaryKey();
+            }
+        }
+        if (!$orderby) {
+            throw new Exception("排序key不存在", 1);
+        }
+        $order = $order ? $order : 'ASC';
         $tableName = $this->getTableName();
         $subquery = "SELECT `{$orderby}` FROM `{$tableName}` ORDER BY {$orderby} {$order} LIMIT $sublimit";
         $op = ($order == 'ASC') ? '>=' : '<=';
         $query = "SELECT * FROM `{$tableName}` WHERE {$orderby} {$op} ($subquery) ORDER BY {$orderby} {$order} LIMIT $perpage";
-        if ($sth = $this->Connection->query($query)) {
-            $res = $sth->fetchAll();
-            $this->statementErrorInfo = $sth->errorInfo();
-            return $res;
-        } else {
-            return false;
-        }
+        $sth = $this->Connection->query($query);
+        $res = $sth->fetchAll();
+        $this->errorHandle($sth);
+        return $res;
     }
 
     /**
