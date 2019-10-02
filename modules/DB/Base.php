@@ -5,7 +5,7 @@
  * @Author: huchao06
  * @Date:   2019-08-31 11:15:55
  * @Last Modified by:   huchao06
- * @Last Modified time: 2019-09-06 17:12:26
+ * @Last Modified time: 2019-09-28 22:06:07
  */
 
 namespace amber\modules\DB;
@@ -217,12 +217,12 @@ abstract class Base
 
     /**
      * 联合查询
-     * @param  [type] $fields [description]
-     * @param  [type] $where  [description]
-     * @param  [type] $bind   [description]
-     * @param  string $order  [description]
-     * @param  string $limit  [description]
-     * @return [type]         [description]
+     * @param  string $fields
+     * @param  string $where
+     * @param  array $bind
+     * @param  string $order
+     * @param  string $limit
+     * @return array
      */
     public function unionSelect($fields, $where, $bind, $order, $limit)
     {

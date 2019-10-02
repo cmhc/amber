@@ -5,7 +5,7 @@
  * @Author: huchao06
  * @Date:   2019-08-31 10:54:20
  * @Last Modified by:   huchao06
- * @Last Modified time: 2019-09-18 21:58:02
+ * @Last Modified time: 2019-09-28 16:20:20
  */
 
 namespace amber\modules\DB;
@@ -311,11 +311,17 @@ abstract class MySQL extends Base
         return $this->Connection->exec("DROP TABLE `{$table}`");
     }
 
-   /**
-     * 列表
+    /**
+     * 列出数据库里面的行
+     * @param  integer $page    
+     * @param  integer $perpage 
+     * @param  string  $orderby 
+     * @param  string  $order   
+     * @return array
      */
     public function lists($page=1, $perpage = 20, $orderby = null, $order = null)
     {
+        $page = ($page < 1) ? 1 : $page;
         $sublimit = ($page-1) * $perpage . ',1';
         if (!$orderby) {
             if (method_exists($this, 'getSortKey')) {

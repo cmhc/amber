@@ -2,9 +2,9 @@
 /**
  * mysql模块测试
  */
-require_once __DIR__ . '/load.php';
+require_once dirname(__DIR__) . '/load.php';
 
-class testTable extends amber\modules\DB\Base
+class tableForTest extends amber\modules\DB\MySQL
 {
    /**
      * 子类需要实现获取表名称的方法
@@ -55,48 +55,6 @@ class testTable extends amber\modules\DB\Base
     public function getUniqueKeys()
     {
         return array('key');
-    }
-
-    /**
-     * 获取连接配置
-     * @return array
-     */
-    public function getConfig()
-    {
-        return array(
-            'dbname' => 'test',
-            'host' => '127.0.0.1',
-            'port' => '3306',
-            'username' => 'root',
-            'password' => 'huchao199326'
-        );
-    }
-
-}
-
-class mysqlTest extends PHPUnit_Framework_TestCase
-{
-    public function __construct()
-    {
-        $this->Table = new testTable();
-        $this->Table->dropTable();
-    }
-
-    /**
-     * 测试创建表
-     */
-    public function testCreateTable()
-    {
-        $this->assertTrue($this->Table->createTable());
-    }
-
-    /**
-     * 测试表存在
-     * @return 
-     */
-    public function testTableExists()
-    {
-        $this->assertTrue($this->Table->tableExists());
     }
 
 }
