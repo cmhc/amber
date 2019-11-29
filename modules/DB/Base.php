@@ -5,7 +5,7 @@
  * @Author: huchao06
  * @Date:   2019-08-31 11:15:55
  * @Last Modified by:   huchao06
- * @Last Modified time: 2019-09-28 22:06:07
+ * @Last Modified time: 2019-11-17 00:20:25
  */
 
 namespace amber\modules\DB;
@@ -161,6 +161,9 @@ abstract class Base
     public function select($fields, $where, $bind, $order = '', $limit = '')
     {
         $tableName = $this->getTableName();
+        if (is_array($fields)) {
+            $fields = '`' . implode('`,`', $fields) . '`';
+        }
         $sql = "SELECT $fields FROM {$tableName} WHERE {$where}";
         if ($order) {
             $sql .= " ORDER BY $order";
@@ -257,6 +260,14 @@ abstract class Base
         if ($errorInfo[2]) {
             throw new \Exception($errorInfo[2], 1);
         }
+    }
+
+    /**
+     * 获取插入id
+     */
+    public function lastInsertId()
+    {
+        return $this->Connection->lastInsertId();
     }
 
 }

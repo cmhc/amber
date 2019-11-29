@@ -7,7 +7,7 @@ class IO
      * json输出
      * @param  array $data
      */
-    public function json($data)
+    public static function json($data)
     {
         echo json_encode($data);
         return ;
@@ -17,7 +17,7 @@ class IO
      * 输出禁止信息
      * @return
      */
-    public function forbidden()
+    public static function forbidden()
     {
         $res = array(
             'version' => 'v1',
@@ -34,7 +34,7 @@ class IO
      * @param string $url
      * @param string $v
      */
-    public function notFound($url, $v = 'v1')
+    public static function notFound($url, $v = 'v1')
     {
         $res = array(
             'version' => $v,
@@ -52,7 +52,7 @@ class IO
      * @param  string $v
      * @return 
      */
-    public function success($data = array(), $v = 'v1')
+    public static function success($data = array(), $v = 'v1')
     {
         $res = array(
             'version' => $v,
@@ -70,7 +70,7 @@ class IO
      * @param  string $v
      * @return 
      */
-    public function failure($msg = '失败', $v = 'v1')
+    public static function failure($msg = '失败', $v = 'v1')
     {
         $res = array(
             'version' => $v,
@@ -86,7 +86,7 @@ class IO
      * @param  string  $key
      * @param  integer $default
      */
-    public function toInt($key, $default=0)
+    public static function toInt($key, $default=0)
     {
         if (isset($_REQUEST[$key])) {
             return intval($_REQUEST[$key]);
@@ -100,7 +100,7 @@ class IO
      * @param  string $default 
      * @return string
      */
-    public function toStr($key, $default='')
+    public static function toStr($key, $default='')
     {
         if (isset($_REQUEST[$key])) {
             return trim(strval($_REQUEST[$key]));
@@ -114,7 +114,7 @@ class IO
      * @param  array  $default
      * @return
      */
-    public function toArr($key, $default = array())
+    public static function toArr($key, $default = array())
     {
         if (isset($_REQUEST[$key]) && is_array($_REQUEST[$key])) {
             return $_REQUEST[$key];

@@ -5,7 +5,7 @@
  * @Author: huchao06
  * @Date:   2019-09-01 22:08:41
  * @Last Modified by:   huchao06
- * @Last Modified time: 2019-09-01 23:26:44
+ * @Last Modified time: 2019-10-05 23:12:12
  */
 namespace amber\modules\DB;
 
@@ -35,8 +35,10 @@ class Connection
      * @param  string $file 数据库文件
      * @return object
      */
-    public static function dblite($file)
+    public static function sqlite($file)
     {
-        return new \PDO('sqlite:' . $file);
+        $SQLite =  new \PDO('sqlite:' . $file);
+        $SQLite->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        return $SQLite;
     }
 }
