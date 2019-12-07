@@ -1,9 +1,13 @@
 <?php
-namespace amber\modules\Util;
 
 /**
- * 链接处理类
+ * url工具类
+ * @Author: huchao
+ * @Date:   2019-12-07 21:02:43
+ * @Last Modified by:   huchao
+ * @Last Modified time: 2019-12-07 21:05:41
  */
+namespace amber\modules\Util;
 
 class Url
 {
@@ -39,5 +43,16 @@ class Url
         }
 
         return str_replace('\\', '/', $absUrl);
+    }
+
+    /**
+     * 获取当前页面url
+     * @return string
+     */
+    public static function getCurrentPage()
+    {
+        $home = (($_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . rtrim( stripslashes(dirname($_SERVER['PHP_SELF'])), '/');
+        $queryString = $_SERVER['REQUEST_URI'];
+        return $home . $queryString;
     }
 }

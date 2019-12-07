@@ -72,11 +72,14 @@ class View
      * 载入模板文件
      * @param $view
      */
-    public function display($view)
+    public function display($view, $data = null)
     {
         $path = $this->__viewPath . '/' . $view;
         if (!file_exists($path)) {
             throw new \Exception("模板文件{$path}不存在", 1);
+        }
+        if ($data) {
+            $this->assign('data', $data);
         }
         require $path;
     }

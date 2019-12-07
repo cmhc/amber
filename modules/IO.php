@@ -109,6 +109,16 @@ class IO
     }
 
     /**
+     * 防止xss攻击
+     * @param  $value
+     * @return
+     */
+    public static function xss($value)
+    {
+        return htmlspecialchars($value);
+    }
+
+    /**
      * 转化成数组
      * @param  string $key
      * @param  array  $default
