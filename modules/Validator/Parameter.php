@@ -25,7 +25,7 @@ class Parameter extends Base
         foreach ($this->rules as $key => $rule) {
             $value = $this->getParamValue($params, $key);
             if (!$this->validationRule($value, $rule)) {
-                throw new \Exception("params error, expected param {$key}");
+                throw new \Exception("params error, expected param {$key}", 1);
             }
         }
         return true;
@@ -62,7 +62,7 @@ class Parameter extends Base
             }
             $validatorMethod = 'is' . ucfirst($rule);
             if (!method_exists($this, $validatorMethod)) {
-                throw new Exception("validator {$rule} not exists", 1000);
+                throw new Exception("validator {$rule} not exists", 1);
             }
             // 常规验证器验证
             if (!$this->$validatorMethod($value)) {

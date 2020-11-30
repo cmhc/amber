@@ -20,7 +20,7 @@ class Http
                 'timeout' => $timeout,
             )
         ));
-        $result = file_get_contents($url, null, $context);
+        $result = @file_get_contents($url, null, $context);
         return $result;
     }
 
@@ -83,7 +83,7 @@ class Http
                 'content' => $body,
             )
         ));
-        $result = file_get_contents($url, null, $context);
+        $result = @file_get_contents($url, null, $context);
         return $result;
     }
 }

@@ -5,7 +5,7 @@
  * @Author: huchao
  * @Date:   2019-12-07 12:04:57
  * @Last Modified by:   huchao
- * @Last Modified time: 2019-12-07 20:43:48
+ * @Last Modified time: 2020-04-29 22:11:58
  */
 namespace amber\modules\View;
 
@@ -43,6 +43,9 @@ class Table
             $this->tbody .= '<tr>';
             foreach ($this->fields as $field) {
                 $content = isset($value[$field]) ? $value[$field] : '';
+                if ($field != 'operation') {
+                    $content = nl2br(htmlspecialchars($value[$field]));
+                }
                 $this->tbody .= "<td><div class=\"{$field}\">{$content}</div></td>";
             }
             $this->tbody .= "</tr>";

@@ -13,7 +13,7 @@ abstract class Base
     /**
      * 数组转字符串
      * @param  array $data
-     * @return 
+     * @return $this
      */
     public function setData($data)
     {
@@ -27,8 +27,8 @@ abstract class Base
 
     /**
      * 数组转字符串
-     * @param  string $array
-     * @return string
+     * @param  array $array
+     * @return array
      */
     protected function arr2str($array)
     {

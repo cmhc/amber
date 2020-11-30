@@ -6,7 +6,7 @@ class Signature
     /**
      * md5签名验签类
      * @param  mixed $data
-     * @return string
+     * @return Signature
      */
     public static function md5($data)
     {
@@ -16,7 +16,7 @@ class Signature
     /**
      * rsa签名验签
      * @param  mixed $data
-     * @return string
+     * @return Signature
      */
     public static function rsa($data)
     {
