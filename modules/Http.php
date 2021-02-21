@@ -1,26 +1,69 @@
 <?php
-namespace amber\modules;
+
 /**
- * http请求
+ * http请求封装类
+ * @Author: huchao
+ * @Date:   2020-04-16 22:41:30
+ * @Last Modified by:   huchao
+ * @Last Modified time: 2020-04-16 22:50:13
  */
-class Http
-{    
+
+namespace amber\modules;
+
+class HTTP
+{
+    protected static $responseHeader;
+
+    protected static $proxy = "";
+
+    /**
+     * 设置代理 
+     */
+    public static function setProxy($proxy)
+    {
+        self::$proxy = $proxy;
+    }
+
+    /**
+     * 清除proxy 
+     */
+    public static function clearProxy()
+    {
+        self::$proxy = "";
+    }
+    
     /**
      * get 请求
      * @param  string  $url
      * @param  integer $timeout
      * @return
      */
-    public static function get($url, $timeout = 5, $header = '')
+    public static function get($url, $timeout = 30, $header = '')
     {
-        $context = stream_context_create(array(
+        $contextOpt = array(
             'http' => array(
                 'method' => 'GET',
                 'header' => $header,
                 'timeout' => $timeout,
             )
-        ));
-        $result = @file_get_contents($url, null, $context);
+        );
+        if (!empty(self::$proxy)) {
+            $contextOpt['http']['proxy'] = "tcp://" . self::$proxy;
+            $contextOpt['http']['request_fulluri'] = true;
+            self::clearProxy();
+        }
+
+        // https禁用证书
+        if (strpos($url, 'https://') !== false) {
+            $contextOpt['ssl'] = array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            );
+        }
+
+        $context = stream_context_create($contextOpt);
+        $result = file_get_contents($url, null, $context);
+        self::$responseHeader = $http_response_header;
         return $result;
     }
 
@@ -31,11 +74,15 @@ class Http
      * @param  integer $timeout 
      * @return 
      */
-    public static function post($url, array $args, $timeout = 5)
+    public static function post($url, array $args, $timeout = 30, $header = "")
     {
         $body = http_build_query($args);
-        $header = 'Content-Type: application/x-www-form-urlencoded';
-        return self::request($url, $body, $header);
+        if ($header) {
+            $header = rtrim($header, "\r\n");
+            $header .= "\r\n";
+        }
+        $header .= "Content-Type: application/x-www-form-urlencoded";
+        return self::request($url, $body, $header, $timeout);
     }
 
     /**
@@ -45,11 +92,15 @@ class Http
      * @param  integer $timeout
      * @return string
      */
-    public static function json($url, $json, $timeout = 5)
+    public static function json($url, array $json, $timeout = 30, $header = "")
     {
         $body = json_encode($json, JSON_UNESCAPED_UNICODE);
-        $header = 'Content-Type: application/json';
-        return self::request($url, $body, $header);
+        if ($header) {
+            $header = rtrim($header, "\r\n");
+            $header .= "\r\n";
+        }
+        $header .= "Content-Type: application/json";
+        return self::request($url, $body, $header, $timeout);
     }
 
     /**
@@ -59,10 +110,14 @@ class Http
      * @param  integer $timeout
      * @return
      */
-    public static function text($url, $text, $timeout = 5)
+    public static function text($url, $text, $timeout = 30, $header = "")
     {
-        $header = 'Content-Type: text/plain';
-        return self::request($url, $text, $header);
+        if ($header) {
+            $header = rtrim($header, "\r\n");
+            $header .= "\r\n";
+        }
+        $header .= "Content-Type: text/plain";
+        return self::request($url, $text, $header, $timeout);
     }
 
     /**
@@ -73,17 +128,79 @@ class Http
      * @param  integer $timeout 
      * @return string
      */
-    public static function request($url, $body, $header, $timeout = 5)
+    public static function request($url, $body, $header, $timeout = 30)
     {
-        $context = stream_context_create(array(
+        $params = array(
             'http' => array(
                 'method' => 'POST',
                 'timeout' => $timeout,
                 'header' => $header,
                 'content' => $body,
             )
-        ));
-        $result = @file_get_contents($url, null, $context);
+        );
+
+        if (!empty(self::$proxy)) {
+            $contextOpt['http']['proxy'] = "tcp://" . self::$proxy;
+            $contextOpt['http']['request_fulluri'] = true;
+            self::clearProxy();
+        }
+
+        // https禁用证书
+        if (strpos($url, 'https://') !== false) {
+            $params['ssl'] = array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            );
+        }
+        $context = stream_context_create($params);
+        $result = file_get_contents($url, null, $context);
+        self::$responseHeader = $http_response_header;
         return $result;
+    }
+
+    public static function getRawHeader()
+    {
+        return self::$responseHeader;
+    }
+
+    /**
+     * 解析header
+     */
+    public static function getHeader()
+    {
+       $header = array();
+        foreach (self::$responseHeader as $k=>$v) {
+            $t = explode(':', $v, 2);
+            if (isset($t[1])) {
+                $header[strtolower(trim($t[0]))] = trim($t[1]);
+            } else {
+                $header[] = $v;
+                if(preg_match("#HTTP/[0-9\.]+\s+([0-9]+)\s+((\w|\s)+)#",$v, $out)) {
+                    $header['code'] = intval($out[1]);
+                    $header['msg'] = $out[2];
+                }
+            }
+        }
+        //charset
+        if (isset($header['content-type']) && strpos($header['content-type'], 'charset') !== false) {
+            $charset = substr($header['content-type'], strpos($header['content-type'], 'charset') + 8);
+            $header['charset'] = $charset;
+        }
+        return $header;
+    }
+
+    /**
+     * 生成通用的http请求头 
+     */
+    public static function makeNormalHeader()
+    {
+        $header = array(
+            "Pragma: no-cache",
+            "Cache-Control: no-cache",
+            "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36",
+            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "Accept-Language: zh-CN,zh;q=0.9",
+        );
+        return implode("\r\n", $header) . "\r\n";
     }
 }

@@ -346,7 +346,7 @@ abstract class SQLite extends Base
             }
         }
         if (!$orderby) {
-            throw new Exception("排序key不存在", 1);
+            throw new \Exception("排序key不存在", 1);
         }
         $order = $order ? $order : 'ASC';
         $tableName = $this->getTableName();

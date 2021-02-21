@@ -29,7 +29,10 @@ class Str
         if (!self::$Condition) {
             self::$Condition = new Condition();
             self::$Condition->setCallback(function($cond) {
-                if (strpos(self::$Str, $cond) !== false) {
+                if (empty($cond) && empty(self::$Str)) {
+                    return true;
+                }
+                if (!empty($cond) && strpos(self::$Str, $cond) !== false) {
                     return true;
                 }
                 return false;
