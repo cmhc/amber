@@ -40,6 +40,9 @@ class HTTP
      */
     public static function get($url, $timeout = 30, $header = '')
     {
+        if (empty($header)) {
+            $header = self::makeNormalHeader();
+        }
         $contextOpt = array(
             'http' => array(
                 'method' => 'GET',

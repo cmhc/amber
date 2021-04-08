@@ -9,7 +9,6 @@
  */
 
 namespace amber\modules\DB;
-use amber\modules\Hub;
 
 abstract class MySQL extends Base
 {
@@ -289,7 +288,7 @@ abstract class MySQL extends Base
      * @param  array $data
      * $data = array('field'=>array("field1","field2"),"data"=>array("d1,d2","d1,d2"))
      */
-    public function minsert($table, aray $data)
+    public function minsert($table, array $data)
     {
         $fields = implode(",",$data['field']);
         $values = '(' . implode('),(',$data['data']) . ')';
@@ -331,7 +330,7 @@ abstract class MySQL extends Base
             }
         }
         if (!$orderby) {
-            throw new Exception("排序key不存在", 1);
+            throw new \Exception("排序key不存在", 1);
         }
         $order = $order ? $order : 'ASC';
         $tableName = $this->getTableName();

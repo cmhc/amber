@@ -12,7 +12,7 @@ class File
      * @param  string $dst
      * @return boolean
      */
-    public function copyr($src, $dst, $cover = false)
+    public static function copyr($src, $dst, $cover = false)
     {
         if (!file_exists($src)) {
             return false;
@@ -51,12 +51,12 @@ class File
      * @param  string $hash 是否将文件进行hash处理
      * @param  callable $check 对文件进行检查的回调函数
      */
-    public function receive($key, $dir, $hash = true, $check = null)
+    public static function receive($key, $dir, $hash = true, $check = null)
     {
         if (!$_FILES || !file_exists($dir)) {
             return false;
         }
-        $files = $this->convertFileArray();
+        $files = self::convertFileArray();
 
         if (!isset($files[$key])) {
             return false;
@@ -77,7 +77,7 @@ class File
             } else {
                 $dst = $dir . '/' . $file['name'];
             }
-            return $this->saveUploadedFile($file, $dst);
+            return self::saveUploadedFile($file, $dst);
         }
 
         //多个文件
@@ -95,7 +95,7 @@ class File
             } else {
                 $dst = $dir . '/' . $single['name'];
             }           
-            $saved[] = $this->saveUploadedFile($single, $dst);
+            $saved[] = self::saveUploadedFile($single, $dst);
         }
 
         return $saved;
@@ -104,7 +104,7 @@ class File
     /**
      * 转换文件数组
      */
-    protected function convertFileArray()
+    private static function convertFileArray()
     {
         $files = array();
         foreach ($_FILES as $index => $file) {
@@ -127,9 +127,9 @@ class File
      * @param  array $uploaded 上传之后保存在$_FILES里面的包含文件信息的数组
      * @param  string $dst 保存的目的完整路径，不存在将会被创建
      */
-    protected function saveUploadedFile($uploaded, $dst)
+    private static function saveUploadedFile($uploaded, $dst)
     {
-        if (!$this->createFolders(dirname($dst))) {
+        if (!self::createFolders(dirname($dst))) {
             return false;
         }
         if ($uploaded['error'] > 0) {
@@ -148,7 +148,7 @@ class File
      * 递归创建文件所在的文件夹
      * @param  string $path 路径
      */
-    protected function createFolders($path)
+    private static function createFolders($path)
     {
         $folders = explode('/', $path);
         $currentPath = array_shift($folders);

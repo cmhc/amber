@@ -221,7 +221,7 @@ abstract class Base
     /**
      * 联合查询
      * @param  string $fields
-     * @param  string $where
+     * @param  array $where
      * @param  array $bind
      * @param  string $order
      * @param  string $limit
