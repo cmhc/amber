@@ -1,0 +1,21 @@
+{
+    "name": "cmhc/amber",
+    "description": "一个应用框架",
+    "type": "framework",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "huchao",
+            "email": "hu_chao@139.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+
+        },
+    "autoload":{
+        "psr-4": {
+            "amber\\": ""
+        }
+    }
+}

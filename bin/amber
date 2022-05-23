@@ -1,0 +1,14 @@
+#!/usr/bin/env php
+<?php
+$autoloadFile = array(
+    dirname(__DIR__) . '/autoload.php',
+    dirname(__DIR__) . '/vendor/autoload.php',
+);
+foreach ($autoloadFile as $file) {
+    if (file_exists($file)) {
+        require $file;
+        break;
+    }
+}
+$command = new \amber\modules\Command();
+$command->main();
